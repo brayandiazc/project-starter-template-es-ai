@@ -44,3 +44,27 @@ Co-Authored-By: [HERRAMIENTA_IA] <[EMAIL_HERRAMIENTA_IA]>
 Para trabajo no trivial, captura la intención antes de escribir código usando el flujo ligero en
 [`../../specs/`](../../specs/README.md): una propuesta breve, una lista de tareas y
 una nota de diseño. Esto les da a los agentes (y a las personas) un objetivo claro y un punto de revisión.
+
+## Servidores MCP (opcional)
+
+Esta plantilla incluye un [`.mcp.json.example`](../../.mcp.json.example) con un
+servidor recomendado y agnóstico al stack:
+
+- **Context7** (Upstash) — obtiene documentación de librerías **actualizada y por
+  versión**, para que los agentes no dependan de conocimiento de API obsoleto. No
+  requiere API key.
+
+Para activarlo, copia el archivo y reinicia Claude Code:
+
+```bash
+cp .mcp.json.example .mcp.json
+```
+
+Claude Code pide aprobación antes de usar cualquier servidor MCP del proyecto.
+
+- **No** agregues servidores MCP para archivos, búsqueda o web — las herramientas
+  integradas de Claude Code ya lo cubren.
+- **Nunca** pongas secretos en `.mcp.json`. Referencia variables de entorno (p. ej.
+  `${GITHUB_TOKEN}`) y documéntalas en `.env.example` (ver [`secrets.md`](secrets.md)).
+- Agrega servidores específicos de tu proyecto (GitHub, Playwright, un MCP de base
+  de datos, etc.) según lo necesite tu stack.
