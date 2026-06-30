@@ -1,0 +1,43 @@
+# ==============================================================================
+# .gitignore — starter genérico multi-stack
+# Borra las secciones que no apliquen a tu proyecto y añade las propias.
+# ==============================================================================
+
+# ── Variables de entorno y secretos ───────────────────────────────────────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ── Dependencias ──────────────────────────────────────────────────────────
+node_modules/
+vendor/
+.venv/
+venv/
+__pycache__/
+
+# ── Builds / artefactos ───────────────────────────────────────────────────
+dist/
+build/
+out/
+*.log
+coverage/
+.cache/
+tmp/
+
+# ── Sistema operativo ─────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Editores / IDE ────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*~
+
+# ── Agentes de IA (solo personal/local) ───────────────────────────────────
+# La configuración compartida de IA (AGENTS.md, CLAUDE.md, .claude/agents,
+# .claude/skills, .claude/settings.json) SÍ se versiona. Solo se ignoran los
+# ajustes personales/locales.
+.claude/settings.local.json

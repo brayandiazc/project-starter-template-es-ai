@@ -1,65 +1,261 @@
-# 📌 Nombre del Proyecto
+<!--
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  Esto es una PLANTILLA. Antes de publicar tu proyecto:                     │
+  │  1. Lee TEMPLATE-USAGE.md para saber cómo instanciarla.                    │
+  │  2. Reemplaza todos los [PLACEHOLDERS] (búscalos con grep, ver guía).      │
+  │  3. Borra los documentos que no apliquen a tu proyecto.                    │
+  │  4. Elimina este comentario.                                               │
+  └─────────────────────────────────────────────────────────────────────────┘
+-->
 
-Descripción breve y directa de lo que hace el proyecto.
+# [NOMBRE_DEL_PROYECTO]
 
-Proyecto basado en [Python](https://www.python.org/), [Django](https://www.djangoproject.com/) y [PostgreSQL](https://www.postgresql.org/). Incluye autenticación, manejo de datos y funcionalidades CRUD.
+Descripción breve y concisa del proyecto (1-2 líneas).
 
-## 🖼️ Vista Previa
+![Build](https://img.shields.io/badge/build-passing-brightgreen)
+![Coverage](https://img.shields.io/badge/coverage-0%25-lightgrey)
+![License](https://img.shields.io/badge/license-MIT-blue)
 
-| Inicio                | Funcionalidad               |
-| --------------------- | --------------------------- |
-| ![main](img/main.png) | ![feature](img/feature.gif) |
+## Tabla de Contenidos
 
-## ⚙️ Requisitos
+- [Descripción](#descripción)
+- [Características](#características)
+- [Requisitos Previos](#requisitos-previos)
+- [Instalación](#instalación)
+- [Configuración](#configuración)
+- [Uso](#uso)
+- [Arquitectura](#arquitectura)
+- [Stack Tecnológico](#stack-tecnológico)
+- [Scripts Disponibles](#scripts-disponibles)
+- [Testing](#testing)
+- [Deployment](#deployment)
+- [Contribución](#contribución)
+- [Troubleshooting](#troubleshooting)
+- [Roadmap](#roadmap)
+- [Documentación](#documentación)
+- [IA / Agentes](#ia--agentes)
+- [Soporte](#soporte)
+- [Versionado](#versionado)
+- [Autores](#autores)
+- [Licencia](#licencia)
+- [Apóyanos](#apóyanos)
+- [Agradecimientos](#agradecimientos)
 
-- Python 3.10+
-- Django 4.2
-- PostgreSQL 13+
+## Descripción
 
-## 🚀 Instalación
+Descripción detallada del proyecto, su propósito y el problema que resuelve. Explica el contexto y cómo este proyecto aporta valor.
+
+### Flujo de Funcionamiento
+
+```mermaid
+graph LR
+    A[Usuario] -->|Solicitud| B[Autenticación]
+    B -->|Token| C[Capa de API]
+    C -->|Validación| D{¿Autorizado?}
+    D -->|Sí| E[Lógica de Negocio]
+    D -->|No| F[Error 401]
+    E -->|Consulta| G[(Base de Datos)]
+    G -->|Respuesta| E
+    E -->|Resultado| C
+    C -->|Respuesta| A
+```
+
+## Características
+
+- ✅ Característica principal 1
+- ✅ Característica principal 2
+- ✅ Característica principal 3
+- 🚧 Característica en desarrollo
+- 📋 Característica planificada
+
+## Requisitos Previos
+
+Antes de comenzar, asegúrate de tener instalado:
+
+- **[RUNTIME]**: v[VERSION] o superior
+- **[GESTOR_DE_PAQUETES]**: v[VERSION] o superior
+- **[BASE_DE_DATOS]**: v[VERSION] o superior
+- **[OTRA_HERRAMIENTA]**: v[VERSION] o superior
+
+### Accesos Necesarios
+
+- Acceso al repositorio
+- Credenciales para [SERVICIO/API]
+- [OTROS_ACCESOS] (si aplica)
+
+## Instalación
+
+### 1. Clonar el repositorio
 
 ```bash
-git clone https://github.com/usuario/proyecto.git
-cd proyecto
-python -m venv venv && source venv/bin/activate
-pip install -r requirements.txt
+git clone [URL_REPOSITORIO]
+cd [NOMBRE_DEL_PROYECTO]
+```
+
+### 2. Instalar dependencias
+
+```bash
+[COMANDO_INSTALAR_DEPENDENCIAS]
+```
+
+### 3. Configurar variables de entorno
+
+```bash
 cp .env.example .env
-python manage.py migrate
-python manage.py runserver
+# Edita .env con tus credenciales
 ```
 
-## 🧪 Tests
+### 4. Inicializar la base de datos (si aplica)
 
 ```bash
-pytest        # Pruebas funcionales
-flake8 .      # Estilo de código
-black --check .  # Formato
+[COMANDO_MIGRACIONES]
+[COMANDO_SEEDS]
 ```
 
-## 🔐 Acceso de Ejemplo
+## Configuración
 
-**Admin:**
-📧 admin@mail.com — 🔑 Abc123#
+Las variables de entorno se documentan en [`.env.example`](.env.example). Cópialo a `.env` y completa los valores para tu entorno.
 
-**Invitado:**
-📧 user@mail.com — 🔑 Abc123#
+> Nunca subas tu archivo `.env` con valores reales al repositorio. Ver [SECURITY.md](SECURITY.md) y [`docs/conventions/secrets.md`](docs/conventions/secrets.md).
 
-## 🛣️ Roadmap
+## Uso
 
-- [ ] Login con redes sociales
-- [ ] API pública
-- [ ] Dashboard mejorado
-
-## 🖇️ Contribuye
+### Desarrollo local
 
 ```bash
-# Fork → Crea rama → Cambios → Commit → Pull Request
+[COMANDO_INICIAR_DESARROLLO]
+# La aplicación quedará disponible en http://localhost:[PUERTO]
 ```
 
-Lee [CONTRIBUTING.md](.github/CONTRIBUTING.md) para más detalles.
+### Ejemplos de uso
 
-## 📄 Licencia
+```bash
+# Ejemplo de comando o llamada representativa
+[EJEMPLO]
+```
 
-MIT — ver [LICENSE](LICENSE.md)
+Para el contrato completo de la API, ver [`docs/architecture/api.md`](docs/architecture/api.md).
 
-⌨️ con ❤️ por [Brayan Diaz C](https://github.com/brayandiazc)
+## Arquitectura
+
+Resumen de cómo está construido el sistema. Detalle completo en [`docs/architecture/architecture.md`](docs/architecture/architecture.md).
+
+## Stack Tecnológico
+
+Resumen de las tecnologías principales. Inventario completo (con versiones y justificación) en [`docs/architecture/stack.md`](docs/architecture/stack.md).
+
+## Scripts Disponibles
+
+```bash
+[COMANDO_DESARROLLO]   # Iniciar en modo desarrollo
+[COMANDO_BUILD]        # Compilar para producción
+[COMANDO_TEST]         # Ejecutar tests
+[COMANDO_LINT]         # Linting / formato
+```
+
+## Testing
+
+```bash
+[COMANDO_TEST]            # Todos los tests
+[COMANDO_TEST_COBERTURA]  # Con reporte de cobertura
+```
+
+Convenciones de testing en [`docs/conventions/testing.md`](docs/conventions/testing.md).
+
+## Deployment
+
+| Ambiente   | URL              | Rama      | Deploy     |
+| ---------- | ---------------- | --------- | ---------- |
+| Desarrollo | [URL_DEV]        | `develop` | Automático |
+| Staging    | [URL_STAGING]    | `staging` | Automático |
+| Producción | [URL_PRODUCCION] | `main`    | Manual     |
+
+Procedimiento detallado en [`docs/conventions/deploy.md`](docs/conventions/deploy.md).
+
+## Contribución
+
+Lee la [Guía de Contribución](CONTRIBUTING.md) para conocer el flujo de trabajo (Git Flow), los estándares de código, el formato de commits (Conventional Commits) y el proceso de Pull Requests.
+
+## Troubleshooting
+
+#### Error: "[MENSAJE_DE_ERROR_COMÚN]"
+
+```bash
+# Pasos para diagnosticar y resolver
+[COMANDO]
+```
+
+### Obtener ayuda
+
+1. Revisa la [documentación](docs/README.md).
+2. Busca en los [issues existentes]([URL_REPOSITORIO]/issues).
+3. Abre un nuevo issue o contacta a [EMAIL_SOPORTE].
+
+## Roadmap
+
+Visión y próximos pasos en [`docs/product/roadmap.md`](docs/product/roadmap.md).
+
+## Documentación
+
+Toda la documentación vive en [`docs/`](docs/README.md):
+
+| Documento                                                                | Responde a                           |
+| ------------------------------------------------------------------------ | ------------------------------------ |
+| [`docs/architecture/architecture.md`](docs/architecture/architecture.md) | ¿Cómo está construido?               |
+| [`docs/architecture/stack.md`](docs/architecture/stack.md)               | ¿Con qué tecnologías?                |
+| [`docs/architecture/database.md`](docs/architecture/database.md)         | ¿Qué entidades y relaciones?         |
+| [`docs/architecture/api.md`](docs/architecture/api.md)                   | ¿Qué endpoints expone?               |
+| [`docs/architecture/auth.md`](docs/architecture/auth.md)                 | ¿Cómo se autentica y autoriza?       |
+| [`docs/architecture/design.md`](docs/architecture/design.md)             | ¿Cómo se diseña y por qué?           |
+| [`docs/product/business-model.md`](docs/product/business-model.md)       | ¿Por qué existe / cómo genera valor? |
+| [`docs/product/roadmap.md`](docs/product/roadmap.md)                     | ¿Hacia dónde va?                     |
+| [`docs/decisions/`](docs/decisions/README.md)                            | ¿Por qué tomamos cada decisión?      |
+| [`docs/conventions/`](docs/conventions/README.md)                        | ¿Cómo trabajamos en este repo?       |
+
+## IA / Agentes
+
+Esta plantilla está **lista para IA**. El contexto para agentes vive en
+[`AGENTS.md`](AGENTS.md) (canónico; [`CLAUDE.md`](CLAUDE.md) lo importa para
+Claude Code). Incluye [subagentes](.claude/agents) y [skills](.claude/skills)
+de ejemplo adaptables, y un flujo ligero basado en especificaciones en
+[`specs/`](specs/README.md). Consulta
+[`docs/conventions/ai-agents.md`](docs/conventions/ai-agents.md) para las reglas.
+
+## Soporte
+
+¿Problemas o sugerencias? Abre un issue en [el repositorio]([URL_REPOSITORIO]/issues) o escribe a [EMAIL_SOPORTE].
+
+## Versionado
+
+Usamos [Git](https://git-scm.com) para el control de versiones y seguimos [Semantic Versioning](https://semver.org/). Consulta las [etiquetas]([URL_REPOSITORIO]/tags) para ver las versiones disponibles y el [CHANGELOG](CHANGELOG.md).
+
+## Autores
+
+- **[AUTOR]** — _Trabajo inicial_ — [@[USUARIO_GITHUB]](https://github.com/[USUARIO_GITHUB])
+
+Consulta también la lista de [contribuidores]([URL_REPOSITORIO]/contributors).
+
+## Licencia
+
+Este proyecto está bajo la licencia [MIT](LICENSE).
+
+## Apóyanos
+
+Si este proyecto te resulta útil y quieres apoyar su desarrollo:
+
+- [GitHub Sponsors](https://github.com/sponsors/[USUARIO_GITHUB])
+- [Ko-fi](https://ko-fi.com/[USUARIO_GITHUB])
+- [Patreon](https://patreon.com/[USUARIO_GITHUB])
+
+## Agradecimientos
+
+Gracias a quienes contribuyen a este proyecto. Si encuentras valor en él, puedes:
+
+- Compartir el proyecto 📤
+- Invitar un café ☕
+- Abrir un issue o PR 🙌
+- Dejar tu agradecimiento con un comentario 💬
+
+---
+
+⌨️ con ❤️ por [@[USUARIO_GITHUB]](https://github.com/[USUARIO_GITHUB])
