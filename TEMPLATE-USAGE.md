@@ -141,7 +141,7 @@ Esta es la variante **lista para IA**. Sobre la base de documentación añade:
   code-reviewer, test-author, doc-keeper, security-reviewer, debugger, explorer).
 - **[`.claude/skills/`](.claude/skills)** — **skills** de ejemplo (new-adr, new-spec,
   commit, open-pr, seo-audit, i18n-parity, design-system-audit, copywriting, changelog,
-  accessibility-audit, refactor).
+  accessibility-audit, refactor, migration-guard).
 - **[`specs/`](specs/README.md)** — un flujo ligero basado en especificaciones para
   cambios no triviales.
 - **[`docs/conventions/ai-agents.md`](docs/conventions/ai-agents.md)** — las reglas para
