@@ -21,6 +21,33 @@ rm -rf .git
 git init
 ```
 
+### Adoptarla en un proyecto existente
+
+"Use this template" solo funciona para repositorios nuevos. Para llevar esta estructura
+(documentación + capa de IA) a un proyecto que ya iniciaste, copia solo lo que necesites
+— sin tocar tu código ni tu historial:
+
+```bash
+# Desde la raíz de tu proyecto, en una rama nueva
+git checkout -b chore/adopt-doc-template
+
+# Descargar la plantilla sin su historial
+npx degit brayandiazc/project-starter-template-es-ai .tpl
+
+# Traer la documentación, las plantillas de GitHub y la capa de IA (copia selectiva)
+cp -R .tpl/docs .
+cp -R .tpl/.github .
+cp -R .tpl/.claude .tpl/specs .
+cp .tpl/AGENTS.md .tpl/CLAUDE.md .tpl/.mcp.json.example .
+cp .tpl/TEMPLATE-USAGE.md .
+rm -rf .tpl
+```
+
+- **No sobrescribas** tu `README.md`, `LICENSE` ni `.gitignore` — fusiónalos a mano. Añade `.claude/settings.local.json` a tu `.gitignore`.
+- Rellena los `docs/` con lo que ya sabes de tu proyecto en vez de dejar placeholders.
+- Claude Code lee `CLAUDE.md` (que importa `AGENTS.md`) automáticamente; ejecuta `/init` si quieres que integre el contexto existente.
+- Commitea en la rama, abre un PR y luego borra `TEMPLATE-USAGE.md`.
+
 ## 3. Reemplazar los placeholders
 
 Todos los placeholders usan el formato `[CORCHETES_EN_MAYÚSCULAS]`. Encuéntralos con:
