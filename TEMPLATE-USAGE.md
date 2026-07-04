@@ -10,6 +10,10 @@ Esta guía explica cómo convertir esta plantilla en la documentación real de t
 
 ## 2. Instanciar la plantilla
 
+**Opción rápida con IA:** si usas Claude Code, abre el repo y escribe `/instanciar`; el
+skill hace la entrevista y rellena todo por ti — detecta si el proyecto es nuevo o
+existente. El resto de esta guía es el proceso manual equivalente, por si lo prefieres.
+
 **Opción A — GitHub (recomendada):** pulsa **"Use this template" → Create a new repository**. GitHub copia el contenido sin el historial de commits.
 
 **Opción B — Clonar y reiniciar el historial:**
