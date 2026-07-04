@@ -68,3 +68,34 @@ Claude Code pide aprobación antes de usar cualquier servidor MCP del proyecto.
   `${GITHUB_TOKEN}`) y documéntalas en `.env.example` (ver [`secrets.md`](secrets.md)).
 - Agrega servidores específicos de tu proyecto (GitHub, Playwright, un MCP de base
   de datos, etc.) según lo necesite tu stack.
+
+## Guardrails de git (opcional)
+
+Las reglas de [`AGENTS.md`](../../AGENTS.md) le dicen al agente qué **debería** hacer, pero
+no lo obligan. Para una garantía dura, esta plantilla incluye un hook opt-in,
+[`.claude/hooks/git-guardrails.sh`](../../.claude/hooks/git-guardrails.sh), que **bloquea
+de forma determinista** las acciones que rompen el branching de
+[`../../CONTRIBUTING.md`](../../CONTRIBUTING.md): commits o push directos a `main`/`develop`
+y force-push a ramas compartidas. El agente no puede saltárselo.
+
+No está activo por defecto. Para habilitarlo, añade el hook a
+`.claude/settings.local.json` (personal) o a `.claude/settings.json` (compartido):
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/git-guardrails.sh" }
+        ]
+      }
+    ]
+  }
+}
+```
+
+Requiere `python3` (para leer el comando del evento). El script falla *abierto*: ante la
+duda permite, para no trabar el flujo. La skill `/instanciar` ofrece activarlo en su paso
+de permisos.
