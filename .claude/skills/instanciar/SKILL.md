@@ -44,8 +44,10 @@ inferir. En proyectos existentes, pre-rellena las respuestas leyendo el código.
   comandos (instalar / dev / test / lint). En existente: LÉELO del código, no preguntes.
 - **Lote D · Capacidades:** ¿API? ¿autenticación? ¿i18n? ¿SEO/web pública? ¿emails
   transaccionales? ¿sistema de diseño/UI? (Cada "no" implica borrar su convención.)
-- **Lote E · Permisos:** ¿dejar el `ask:[Bash]` conservador de `.claude/settings.json`,
-  o crear `.claude/settings.local.json` con una allowlist de solo-lectura?
+- **Lote E · Permisos y guardrails:** ¿dejar el `ask:[Bash]` conservador de
+  `.claude/settings.json`, o crear `.claude/settings.local.json` con una allowlist de
+  solo-lectura? ¿Y activar los **guardrails de git** (hook opt-in que bloquea commits/push
+  a `main`/`develop` y force-push)?
 
 ## Paso 3 — Rellenar / fusionar según contexto
 
@@ -70,6 +72,9 @@ comandos de solo-lectura (`ls, cat, head, tail, wc, grep, rg, find, tree, sort, 
 echo, pwd, which`, y `git status/log/diff/branch/show/remote`). Verifica que
 `.claude/settings.local.json` esté en `.gitignore`. Si se eligió "conservador", no toques
 nada de permisos.
+
+Si se aceptaron los **guardrails de git**, añade el bloque `hooks.PreToolUse` que apunta a
+`.claude/hooks/git-guardrails.sh` (ver `docs/conventions/ai-agents.md`). Requiere `python3`.
 
 ## Paso 5 — Limpieza por tipo (regla de TEMPLATE-USAGE.md §7)
 
