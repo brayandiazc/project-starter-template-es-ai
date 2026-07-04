@@ -46,6 +46,10 @@ en [`docs/`](docs/README.md) — léela antes de un trabajo no trivial.
   [`CONTRIBUTING.md`](CONTRIBUTING.md). Nunca hagas commit directamente a `main`.
 - **Conventional Commits.** `type(scope): summary`. Añade la línea de coautoría de IA
   para los commits asistidos por IA (consulta [`docs/conventions/ai-agents.md`](docs/conventions/ai-agents.md)).
+- **Issues y PRs con plantilla.** Al crear un issue o un pull request, usa SIEMPRE las
+  plantillas de [`.github/`](.github) (`ISSUE_TEMPLATE/` y `PULL_REQUEST_TEMPLATE.md`) y
+  respeta el branching de [`CONTRIBUTING.md`](CONTRIBUTING.md). Las skills `/open-issue` y
+  `/open-pr` lo hacen por ti.
 - **Pruebas con cada cambio.** Sigue [`docs/conventions/testing.md`](docs/conventions/testing.md).
 - **Mantén la documentación sincronizada.** Actualiza los `docs/` correspondientes y `CHANGELOG.md`; registra
   las decisiones notables como un ADR en `docs/decisions/`.
