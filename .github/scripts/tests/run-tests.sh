@@ -11,6 +11,7 @@ GIT_HOOK="$REPO_ROOT/.claude/hooks/git-guardrails.sh"
 SECRET_HOOK="$REPO_ROOT/.claude/hooks/secret-guardrails.sh"
 CHECK_PLACEHOLDERS="$REPO_ROOT/.github/scripts/check-placeholders.sh"
 CHECK_LINKS="$REPO_ROOT/.github/scripts/check-links.sh"
+CHECK_SKILLS="$REPO_ROOT/.github/scripts/check-skills.sh"
 
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
@@ -117,6 +118,36 @@ make_repo links-bad
 printf 'Ver [docs](docs/no-existe.md).\n' >"$TMP/links-bad/README.md"
 commit_all "$TMP/links-bad"
 (bash "$CHECK_LINKS" "$TMP/links-bad" >/dev/null); check "enlace roto → falla" 1 $?
+
+# ── check-skills.sh ───────────────────────────────────────────────────────────
+if [ -f "$CHECK_SKILLS" ]; then
+  echo "check-skills.sh:"
+  make_skill() { # $1 = repo, $2 = carpeta, $3 = frontmatter completo
+    mkdir -p "$TMP/$1/.claude/skills/$2"
+    printf '%s\n\ncuerpo\n' "$3" >"$TMP/$1/.claude/skills/$2/SKILL.md"
+  }
+  DESC_OK="description: Hace X. Úsalo cuando la persona pida X o Y (p. ej. \"haz X\")."
+
+  mkdir -p "$TMP/sk-ok"
+  make_skill sk-ok mi-skill "$(printf -- '---\nname: mi-skill\n%s\n---' "$DESC_OK")"
+  (bash "$CHECK_SKILLS" "$TMP/sk-ok" >/dev/null); check "skill válida → pasa" 0 $?
+
+  mkdir -p "$TMP/sk-mismatch"
+  make_skill sk-mismatch mi-skill "$(printf -- '---\nname: otro-nombre\n%s\n---' "$DESC_OK")"
+  (bash "$CHECK_SKILLS" "$TMP/sk-mismatch" >/dev/null); check "name ≠ carpeta → falla" 1 $?
+
+  mkdir -p "$TMP/sk-nodesc"
+  make_skill sk-nodesc mi-skill "$(printf -- '---\nname: mi-skill\ndescription: corta\n---')"
+  (bash "$CHECK_SKILLS" "$TMP/sk-nodesc" >/dev/null); check "description corta → falla" 1 $?
+
+  mkdir -p "$TMP/sk-agent/.claude/agents"
+  printf -- '---\nname: revisor\ndescription: Revisa diffs del proyecto.\n---\ncuerpo\n' \
+    >"$TMP/sk-agent/.claude/agents/otro.md"
+  (bash "$CHECK_SKILLS" "$TMP/sk-agent" >/dev/null); check "agente name ≠ archivo → falla" 1 $?
+
+  mkdir -p "$TMP/sk-none"
+  (bash "$CHECK_SKILLS" "$TMP/sk-none" >/dev/null); check "repo sin capa de IA → pasa" 0 $?
+fi
 
 # ── Resumen ───────────────────────────────────────────────────────────────────
 echo ""

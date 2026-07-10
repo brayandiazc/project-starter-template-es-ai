@@ -41,6 +41,14 @@ jobs:
       - name: Verificar placeholders
         run: bash .github/scripts/check-placeholders.sh
 
+  skills:
+    name: Skills y agentes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Validar frontmatter de skills y agentes
+        run: bash .github/scripts/check-skills.sh
+
   scripts:
     name: Pruebas de scripts
     runs-on: ubuntu-latest

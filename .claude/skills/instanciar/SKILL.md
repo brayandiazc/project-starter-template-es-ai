@@ -97,7 +97,9 @@ Borra los docs/convenciones que no apliquen:
 - API / Librería → borra docs de UI (`seo`, `views-and-layouts`, `design-system`,
   `branding`).
 - Cada capacidad respondida "no" en el Lote D → borra su convención (p. ej. sin i18n →
-  `docs/conventions/i18n.md`).
+  `docs/conventions/i18n.md`) **y su skill asociada**: sin i18n → `i18n-parity`; sin
+  base de datos → `migration-guard`; sin SEO/web pública → `seo-audit`; sin UI (API o
+  librería) → `design-system-audit`, `accessibility-audit` y `copywriting`.
 - **Siempre** borra los archivos exclusivos del repo-plantilla: el workflow
   `.github/workflows/template-parity.yml`, el script `.github/scripts/check-parity.sh`
   y la skill `.claude/skills/portar-cambio/` — solo sirven para mantener la familia de

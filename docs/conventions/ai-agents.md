@@ -39,6 +39,16 @@ Marca los commits asistidos por IA con un trailer para que la autoría sea trans
 Co-Authored-By: [HERRAMIENTA_IA] <[EMAIL_HERRAMIENTA_IA]>
 ```
 
+## Memoria del agente vs. documentación
+
+Algunas herramientas mantienen una **memoria persistente** por proyecto (p. ej. la
+auto-memoria de Claude Code). Úsala solo para lo personal y efímero (preferencias,
+correcciones recurrentes) y pódala con frecuencia. Todo conocimiento **duradero o de
+equipo** — decisiones, convenciones, contexto del dominio — pertenece al repositorio:
+`docs/`, los ADRs de [`../decisions/`](../decisions/README.md) y el `CHANGELOG.md`.
+Si un agente "recuerda" algo que el equipo necesita saber, ese recuerdo está en el
+lugar equivocado: conviértelo en documentación versionada.
+
 ## Cambios guiados por especificaciones (opcional)
 
 Para trabajo no trivial, captura la intención antes de escribir código usando el flujo ligero en
