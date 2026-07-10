@@ -46,8 +46,9 @@ inferir. En proyectos existentes, pre-rellena las respuestas leyendo el código.
   transaccionales? ¿sistema de diseño/UI? (Cada "no" implica borrar su convención.)
 - **Lote E · Permisos y guardrails:** ¿dejar el `ask:[Bash]` conservador de
   `.claude/settings.json`, o crear `.claude/settings.local.json` con una allowlist de
-  solo-lectura? ¿Y activar los **guardrails de git** (hook opt-in que bloquea commits/push
-  a `main`/`develop` y force-push)?
+  solo-lectura? ¿Activar los **guardrails de git** (hook opt-in que bloquea commits/push
+  a `main`/`develop` y force-push)? ¿Y los **guardrails de secretos** (hook opt-in que
+  bloquea escrituras del agente sobre `.env` reales y llaves privadas)?
 
 ## Paso 3 — Rellenar / fusionar según contexto
 
@@ -65,6 +66,15 @@ Archivos que se actualizan: `README.md`, `AGENTS.md` (resumen + comandos),
   `README.md`, `LICENSE` ni `.gitignore` — propón el merge a mano. Trabaja en una rama
   `chore/adopt-doc-template`. Sugiere correr `/init` para integrar el contexto del código.
 
+Además, escribe `.template-origin` en la raíz para que `/actualizar-plantilla` pueda
+traer mejoras futuras de la plantilla:
+
+```
+repo=<URL de esta plantilla>
+commit=<SHA del HEAD de la plantilla usado como base>
+fecha=<YYYY-MM-DD de hoy>
+```
+
 ## Paso 4 — Aplicar la decisión de permisos (Lote E)
 
 Si se eligió "automático", crea `.claude/settings.local.json` con una allowlist de
@@ -73,8 +83,10 @@ echo, pwd, which`, y `git status/log/diff/branch/show/remote`). Verifica que
 `.claude/settings.local.json` esté en `.gitignore`. Si se eligió "conservador", no toques
 nada de permisos.
 
-Si se aceptaron los **guardrails de git**, añade el bloque `hooks.PreToolUse` que apunta a
-`.claude/hooks/git-guardrails.sh` (ver `docs/conventions/ai-agents.md`). Requiere `python3`.
+Si se aceptaron los **guardrails de git** y/o los **guardrails de secretos**, añade los
+bloques `hooks.PreToolUse` que apuntan a `.claude/hooks/git-guardrails.sh` (matcher
+`Bash`) y `.claude/hooks/secret-guardrails.sh` (matcher `Write|Edit`) — el JSON completo
+está en `docs/conventions/ai-agents.md`. Requieren `python3`.
 
 ## Paso 5 — Limpieza por tipo (regla de TEMPLATE-USAGE.md §7)
 
@@ -86,10 +98,18 @@ Borra los docs/convenciones que no apliquen:
   `branding`).
 - Cada capacidad respondida "no" en el Lote D → borra su convención (p. ej. sin i18n →
   `docs/conventions/i18n.md`).
+- **Siempre** borra los archivos exclusivos del repo-plantilla: el workflow
+  `.github/workflows/template-parity.yml`, el script `.github/scripts/check-parity.sh`
+  y la skill `.claude/skills/portar-cambio/` — solo sirven para mantener la familia de
+  variantes, no a un proyecto instanciado.
 
 Pregunta antes de borrar en bloque si hay ambigüedad.
 
 ## Paso 6 — Cierre
+
+Registra la instanciación como el ADR `0002` (usa `docs/decisions/0000-template.md`):
+contexto del proyecto, stack elegido, tipo, convenciones eliminadas y política de
+permisos/guardrails — así el proyecto estrena su propio registro de decisiones.
 
 Muestra un resumen del diff y la lista de placeholders que aún requieren decisión humana.
 NO hagas commit — deja que la persona revise. En "existente", recuérdale que todo quedó

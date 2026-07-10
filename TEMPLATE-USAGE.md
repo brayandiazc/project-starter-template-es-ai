@@ -62,27 +62,38 @@ grep -rno '\[[A-ZÁÉÍÓÚÑ0-9_/]\+\]' --include='*.md' --include='.env.exampl
 
 ### Catálogo de placeholders
 
-| Placeholder                                        | Significado                                            |
-| -------------------------------------------------- | ------------------------------------------------------ |
-| `[NOMBRE_DEL_PROYECTO]`                            | Nombre del proyecto                                    |
-| `[NOMBRE_EMPRESA]`                                 | Nombre de la empresa u organización                    |
-| `[AUTOR]`                                          | Nombre del autor o mantenedor principal                |
-| `[USUARIO_GITHUB]`                                 | Usuario u organización de GitHub                       |
-| `[URL_REPOSITORIO]`                                | URL del repositorio                                    |
-| `[AÑO]`                                            | Año del copyright en la licencia                       |
-| `[VERSION]`                                        | Versión (de una dependencia o del proyecto)            |
-| `[FECHA]`                                          | Fecha (formato `YYYY-MM-DD`)                           |
-| `[EMAIL_SOPORTE]`                                  | Correo de contacto/soporte                             |
-| `[EMAIL_SEGURIDAD]`                                | Correo para reportar vulnerabilidades                  |
-| `[RUNTIME]`                                        | Lenguaje/runtime (Node.js, Python, Ruby…)              |
-| `[GESTOR_DE_PAQUETES]`                             | npm, pnpm, bundler, pip…                               |
-| `[BASE_DE_DATOS]`                                  | PostgreSQL, MySQL, MongoDB…                            |
-| `[PUERTO]`                                         | Puerto local de desarrollo                             |
-| `[COMANDO_*]`                                      | Comandos del proyecto (instalar, test, build, deploy…) |
-| `[URL_DEV]` / `[URL_STAGING]` / `[URL_PRODUCCION]` | URLs por ambiente                                      |
-| `[SERVICIO/API]`, `[LINK_*]`, `[OTROS_*]`          | Recursos específicos de tu proyecto                    |
+| Placeholder                                                                                                            | Significado                                             |
+| ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| `[NOMBRE_DEL_PROYECTO]`                                                                                                | Nombre del proyecto                                     |
+| `[NOMBRE_EMPRESA]`                                                                                                     | Nombre de la empresa u organización                     |
+| `[AUTOR]`                                                                                                              | Nombre del autor o mantenedor principal                 |
+| `[USUARIO_GITHUB]`                                                                                                     | Usuario u organización de GitHub                        |
+| `[URL_REPOSITORIO]`                                                                                                    | URL del repositorio                                     |
+| `[AÑO]`                                                                                                                | Año del copyright en la licencia                        |
+| `[VERSION]`                                                                                                            | Versión (de una dependencia o del proyecto)             |
+| `[FECHA]`                                                                                                              | Fecha (formato `YYYY-MM-DD`)                            |
+| `[EMAIL_SOPORTE]`                                                                                                      | Correo de contacto/soporte                              |
+| `[EMAIL_SEGURIDAD]`                                                                                                    | Correo para reportar vulnerabilidades                   |
+| `[RUNTIME]`                                                                                                            | Lenguaje/runtime (Node.js, Python, Ruby…)               |
+| `[GESTOR_DE_PAQUETES]`                                                                                                 | npm, pnpm, bundler, pip…                                |
+| `[BASE_DE_DATOS]`                                                                                                      | PostgreSQL, MySQL, MongoDB…                             |
+| `[PUERTO]`                                                                                                             | Puerto local de desarrollo                              |
+| `[COMANDO_*]`                                                                                                          | Comandos del proyecto (instalar, test, build, deploy…)  |
+| `[URL_*]` (`[URL_DEV]`, `[URL_BASE_API]`…)                                                                             | URLs por ambiente y recursos web                        |
+| `[SERVICIO/API]`, `[LINK_*]`, `[OTROS_*]`                                                                              | Recursos específicos de tu proyecto                     |
+| `[HERRAMIENTA]`, `[HERRAMIENTA_*]`, `[OTRA_HERRAMIENTA]`                                                               | Herramientas del stack (build, test, e2e, migraciones…) |
+| `[FRAMEWORK_*]`, `[ORM]`, `[LINTER]`, `[FORMATEADOR]`                                                                  | Piezas del stack por rol                                |
+| `[CACHE]`, `[COLA]`, `[CONTENEDORES]`, `[CI_CD]`, `[MONITOREO]`, `[TTL]`                                               | Infraestructura y operaciones                           |
+| `[RUTA_*]`                                                                                                             | Rutas de carpetas/archivos del proyecto                 |
+| `[LAYOUT_*]`, `[LOCALE_*]`, `[AA/AAA]`                                                                                 | UI, i18n y nivel de accesibilidad objetivo              |
+| `[ENTIDAD_*]`, `[COMPONENTE_*]`, `[SERVICIO_*]`, `[ROL_*]`                                                             | Modelo de dominio y arquitectura                        |
+| `[SEGMENTO_*]`, `[PLAN_*]`, `[PRECIO]`, `[PORCENTAJE]`                                                                 | Modelo de negocio                                       |
+| `[ELEGIDA]`, `[DESCARTADA]`, `[ALTERNATIVA]`                                                                           | Comparativas en decisiones (stack, diseño)              |
+| `[HERRAMIENTA_IA]`, `[EMAIL_HERRAMIENTA_IA]`                                                                           | Herramienta de IA y su email (trailer de coautoría)     |
+| `[TIPO]`, `[OTRO]`, `[EJEMPLO]`, `[COMANDO]`, `[NOMBRES]`, `[PROVEEDOR]`, `[RECURSO]`, `[RIESGO]`, `[OTRAS_VARIABLES]` | Descriptivos locales de cada documento                  |
 
-> Mantén este catálogo actualizado: cualquier `[PLACEHOLDER]` nuevo que introduzcas debería aparecer aquí.
+> Mantén este catálogo actualizado: cualquier `[PLACEHOLDER]` nuevo que introduzcas debería
+> aparecer aquí — el CI lo verifica con `.github/scripts/check-placeholders.sh`.
 
 ## 4. Orden recomendado de llenado
 
@@ -110,6 +121,8 @@ grep -rno '\[[A-ZÁÉÍÓÚÑ0-9_/]\+\]' --include='*.md' --include='.env.exampl
 | `.env.example`                | Contrato de variables de entorno          | Si hay configuración |
 | `.gitignore`, `.editorconfig` | Higiene del repo                          | Recomendado          |
 | `.github/`                    | Plantillas de issues/PR, automatizaciones | Opcional             |
+| `.github/workflows/`          | CI activo (calidad de docs, secretos)     | Recomendado          |
+| `.github/scripts/`            | Scripts de verificación y sus pruebas     | Recomendado          |
 | `docs/architecture/*`         | Documentación técnica                     | Según necesidad      |
 | `docs/product/*`              | Negocio y roadmap                         | Según necesidad      |
 | `docs/decisions/*`            | Registro de decisiones (ADR)              | Recomendado          |
@@ -120,7 +133,12 @@ grep -rno '\[[A-ZÁÉÍÓÚÑ0-9_/]\+\]' --include='*.md' --include='.env.exampl
 - Convenciones de `docs/conventions/` que no uses (p. ej. `i18n.md` si no internacionalizas).
 - Secciones del `README.md` que no apliquen (p. ej. la tabla de Deployment).
 - Documentos de `docs/architecture/` que no correspondan (p. ej. `api.md` si no expones API).
-- Los workflows de ejemplo en `.github/workflows/` si no usas GitHub Actions.
+- Los workflows de ejemplo en `.github/workflows/` si no usas GitHub Actions. Los
+  workflows **activos** (`quality.yml`, `secret-scan.yml`) funcionan en cualquier stack —
+  consérvalos si usas GitHub Actions.
+- **Siempre** borra lo exclusivo del repo-plantilla: `.github/workflows/template-parity.yml`,
+  `.github/scripts/check-parity.sh` y la skill `portar-cambio` (la skill `/instanciar`
+  lo hace por ti).
 
 ## 6. `architecture/X.md` vs `conventions/X.md`
 
@@ -159,6 +177,20 @@ Esta plantilla es **multiplataforma**: el núcleo (gobernanza, arquitectura, dec
 - Cada decisión arquitectónica relevante se registra como un **ADR** en `docs/decisions/` (ver su [README](docs/decisions/README.md)).
 - Mantén `CHANGELOG.md` al día siguiendo [Keep a Changelog](https://keepachangelog.com/es-ES/).
 - Convenciones adicionales (pagos, webhooks, multi-tenancy, PWA, etc.) pueden añadirse usando [`docs/conventions/_template.md`](docs/conventions/_template.md).
+- El CI vigila la salud de los docs (workflow [`quality.yml`](.github/workflows/quality.yml)):
+  formato Markdown, enlaces internos y placeholders pendientes.
+
+### Recibir mejoras de la plantilla
+
+La plantilla sigue evolucionando después de que la instancias. Para poder traer esas
+mejoras (nuevos scripts, hooks o workflows) a tu proyecto:
+
+- Al instanciar, queda un archivo `.template-origin` en la raíz con el repo y el commit
+  de la plantilla de origen (la skill `/instanciar` lo escribe por ti).
+- Cuando quieras sincronizar, ejecuta la skill `/actualizar-plantilla`: calcula el diff
+  del tooling entre tu commit de origen y el HEAD actual de la plantilla y propone
+  aplicarlo — sin tocar tu documentación ya rellenada.
+- Sigue los releases/tags del repositorio de la plantilla para saber qué cambió.
 
 ## 9. La capa de IA
 
@@ -170,9 +202,13 @@ Esta es la variante **lista para IA**. Sobre la base de documentación añade:
   dos nombres).
 - **[`.claude/agents/`](.claude/agents)** — **subagentes** de ejemplo (architect,
   code-reviewer, test-author, doc-keeper, security-reviewer, debugger, explorer).
-- **[`.claude/skills/`](.claude/skills)** — **skills** de ejemplo (new-adr, new-spec,
-  commit, open-pr, seo-audit, i18n-parity, design-system-audit, copywriting, changelog,
-  accessibility-audit, refactor, migration-guard).
+- **[`.claude/skills/`](.claude/skills)** — **skills** de ejemplo (instanciar, new-adr,
+  new-spec, commit, open-issue, open-pr, changelog, release, actualizar-plantilla,
+  seo-audit, i18n-parity, design-system-audit, copywriting, accessibility-audit,
+  refactor, migration-guard; `portar-cambio` es exclusiva del repo-plantilla).
+- **[`.claude/hooks/`](.claude/hooks)** — **guardrails deterministas** opt-in
+  (git-guardrails y secret-guardrails; ver
+  [`docs/conventions/ai-agents.md`](docs/conventions/ai-agents.md)).
 - **[`specs/`](specs/README.md)** — un flujo ligero basado en especificaciones para
   cambios no triviales.
 - **[`docs/conventions/ai-agents.md`](docs/conventions/ai-agents.md)** — las reglas para
