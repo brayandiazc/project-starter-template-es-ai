@@ -8,8 +8,8 @@ del proyecto.
 Funcionan tal cual, sin importar el lenguaje del proyecto — no los borres al instanciar:
 
 - [`quality.yml`](quality.yml) — calidad de la documentación: formato Markdown
-  (Prettier), enlaces internos, placeholders y la suite de pruebas de los scripts del
-  repo (ver [`../scripts/`](../scripts)).
+  (Prettier), enlaces internos, placeholders, estructura de skills/agentes y la suite
+  de pruebas de los scripts del repo (ver [`../scripts/`](../scripts)).
 - [`secret-scan.yml`](secret-scan.yml) — escaneo de secretos con
   [gitleaks](https://github.com/gitleaks/gitleaks) sobre el historial.
 
