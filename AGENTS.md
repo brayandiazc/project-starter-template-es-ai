@@ -51,6 +51,8 @@ en [`docs/`](docs/README.md) — léela antes de un trabajo no trivial.
   respeta el branching de [`CONTRIBUTING.md`](CONTRIBUTING.md). Las skills `/open-issue` y
   `/open-pr` lo hacen por ti.
 - **Pruebas con cada cambio.** Sigue [`docs/conventions/testing.md`](docs/conventions/testing.md).
+- **"Terminado" tiene definición.** Antes de dar un cambio por hecho, repasa
+  [`docs/conventions/definition-of-done.md`](docs/conventions/definition-of-done.md).
 - **Mantén la documentación sincronizada.** Actualiza los `docs/` correspondientes y `CHANGELOG.md`; registra
   las decisiones notables como un ADR en `docs/decisions/`.
 
