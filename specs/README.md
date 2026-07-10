@@ -13,15 +13,25 @@ valga la pena alinearse antes de la implementación. Omítela para erratas y cam
 
 ## Cómo funciona
 
-1. Copia [`_template/`](_template) a `specs/<nombre-del-cambio>/`
-   (kebab-case, p. ej. `specs/user-invites/`). O ejecuta la skill `/new-spec`.
+1. Copia [`_template/`](_template) a `specs/NNNN-<nombre-del-cambio>/`, donde `NNNN`
+   es el siguiente correlativo de 4 dígitos (kebab-case, p. ej. `specs/0012-user-invites/`).
+   O ejecuta la skill `/new-spec`, que calcula el número por ti.
 2. Completa los tres archivos:
    - `proposal.md` — el qué y el por qué (problema, objetivo, alcance).
    - `tasks.md` — la lista de tareas de implementación.
    - `design.md` — decisiones técnicas (enlaza a los ADRs en [`../docs/decisions/`](../docs/decisions/README.md)).
 3. Hazla revisar y luego implementa siguiendo `tasks.md`.
 4. Cuando termines, la especificación queda como registro (opcionalmente mueve las especificaciones completadas a una
-   subcarpeta `archive/`).
+   subcarpeta `archive/`, **conservando su número**).
+
+### Por qué van numeradas
+
+El prefijo `NNNN-` hace que `ls specs/` muestre las especificaciones **en el orden en
+que se crearon** — igual que los ADRs de [`../docs/decisions/`](../docs/decisions/README.md).
+Sin él, el orden alfabético agrupa por nombre de feature y la cronología solo se
+recupera espulgando `git log`, lo que se vuelve inmanejable a partir de unas cuantas
+especificaciones. El número además da una referencia estable y corta ("la spec 0012")
+en PRs, ADRs y conversaciones, y sobrevive al archivado.
 
 ## Relación con los ADRs
 
