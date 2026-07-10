@@ -15,7 +15,7 @@ Crea un issue bien formado usando la plantilla del repositorio.
    - `documentation_request.md` — algo que falta o está mal en la documentación.
    - `task.md` — una tarea de trabajo interna (chore, refactor, tooling).
    - `support_question.md` — una duda o pregunta de soporte.
-   Si el tipo es ambiguo por lo que dice `$ARGUMENTS`, pregunta antes de elegir.
+     Si el tipo es ambiguo por lo que dice `$ARGUMENTS`, pregunta antes de elegir.
 2. Lee la plantilla elegida para conocer sus secciones requeridas y su encabezado
    (`title:`, `labels:`, `assignees:`). Respeta ese frontmatter.
 3. Rellena cada sección con la información de `$ARGUMENTS` y del contexto de la

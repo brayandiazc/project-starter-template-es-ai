@@ -69,16 +69,22 @@ Claude Code pide aprobación antes de usar cualquier servidor MCP del proyecto.
 - Agrega servidores específicos de tu proyecto (GitHub, Playwright, un MCP de base
   de datos, etc.) según lo necesite tu stack.
 
-## Guardrails de git (opcional)
+## Guardrails deterministas (opcional)
 
 Las reglas de [`AGENTS.md`](../../AGENTS.md) le dicen al agente qué **debería** hacer, pero
-no lo obligan. Para una garantía dura, esta plantilla incluye un hook opt-in,
-[`.claude/hooks/git-guardrails.sh`](../../.claude/hooks/git-guardrails.sh), que **bloquea
-de forma determinista** las acciones que rompen el branching de
-[`../../CONTRIBUTING.md`](../../CONTRIBUTING.md): commits o push directos a `main`/`develop`
-y force-push a ramas compartidas. El agente no puede saltárselo.
+no lo obligan. Para una garantía dura, esta plantilla incluye dos hooks opt-in que
+**bloquean de forma determinista** — el agente no puede saltárselos:
 
-No está activo por defecto. Para habilitarlo, añade el hook a
+- [`.claude/hooks/git-guardrails.sh`](../../.claude/hooks/git-guardrails.sh) — bloquea
+  las acciones que rompen el branching de [`../../CONTRIBUTING.md`](../../CONTRIBUTING.md):
+  commits o push directos a `main`/`develop` y force-push a ramas compartidas. Cubre
+  también `git -C <ruta>` y comandos encadenados con `&&`.
+- [`.claude/hooks/secret-guardrails.sh`](../../.claude/hooks/secret-guardrails.sh) —
+  bloquea escrituras del agente sobre archivos de secretos: el `.env` real (y variantes
+  como `.env.local`) y llaves privadas (`*.pem`, `id_rsa`…). `.env.example` sí se puede
+  editar: es el contrato, sin valores reales.
+
+No están activos por defecto. Para habilitarlos, añade los hooks a
 `.claude/settings.local.json` (personal) o a `.claude/settings.json` (compartido):
 
 ```json
@@ -88,7 +94,19 @@ No está activo por defecto. Para habilitarlo, añade el hook a
       {
         "matcher": "Bash",
         "hooks": [
-          { "type": "command", "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/git-guardrails.sh" }
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/git-guardrails.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/secret-guardrails.sh"
+          }
         ]
       }
     ]
@@ -96,6 +114,7 @@ No está activo por defecto. Para habilitarlo, añade el hook a
 }
 ```
 
-Requiere `python3` (para leer el comando del evento). El script falla *abierto*: ante la
-duda permite, para no trabar el flujo. La skill `/instanciar` ofrece activarlo en su paso
-de permisos.
+Requieren `python3` (para leer el evento). Ambos scripts fallan _abiertos_: ante la duda
+permiten, para no trabar el flujo. Sus casos cubiertos están probados en
+`.github/scripts/tests/run-tests.sh` (corre en CI). La skill `/instanciar` ofrece
+activarlos en su paso de permisos.
