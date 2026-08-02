@@ -8,6 +8,9 @@ description: Trae a este proyecto las mejoras que la plantilla de origen recibi�
 Sincroniza el **tooling** de este proyecto con la versión actual de su plantilla de
 origen. Solo toca la capa reutilizable — nunca la documentación ya rellenada ni el código.
 
+> El workflow `.github/workflows/template-update-check.yml` revisa semanalmente si la
+> plantilla publicó mejoras y abre un issue de aviso — esta skill es la que las aplica.
+
 ## Paso 1 — Leer el origen
 
 Lee `.template-origin` en la raíz (lo escribe `/instanciar`):

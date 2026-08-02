@@ -49,11 +49,15 @@ equipo** — decisiones, convenciones, contexto del dominio — pertenece al rep
 Si un agente "recuerda" algo que el equipo necesita saber, ese recuerdo está en el
 lugar equivocado: conviértelo en documentación versionada.
 
-## Cambios guiados por especificaciones (opcional)
+## Cambios guiados por especificaciones (obligatorio)
 
-Para trabajo no trivial, captura la intención antes de escribir código usando el flujo ligero en
+**Toda funcionalidad o corrección (`feat/*`, `fix/*`) nace de una especificación** en
 [`../../specs/`](../../specs/README.md): una propuesta breve, una lista de tareas y
-una nota de diseño. Esto les da a los agentes (y a las personas) un objetivo claro y un punto de revisión.
+una nota de diseño. Esto les da a los agentes (y a las personas) un objetivo claro y
+un punto de revisión. La regla la garantiza de forma determinista el hook
+`spec-guardrails.sh` (ver abajo): en una rama `feat/*` o `fix/*` no se puede editar
+código si no existe `specs/NNNN-<slug-de-la-rama>/`. Los cambios de documentación
+pura van en ramas `docs/*` y no requieren spec.
 
 ## Servidores MCP (opcional)
 
@@ -79,52 +83,52 @@ Claude Code pide aprobación antes de usar cualquier servidor MCP del proyecto.
 - Agrega servidores específicos de tu proyecto (GitHub, Playwright, un MCP de base
   de datos, etc.) según lo necesite tu stack.
 
-## Guardrails deterministas (opcional)
+### MCP de infraestructura (DNS, CDN, VPS)
+
+Recomendaciones probadas para la capa de despliegue (ver `docs/conventions/deploy.md`):
+
+- **Cloudflare** (DNS, Workers, R2, observabilidad) — usa el **plugin oficial de
+  Cloudflare para Claude Code** (`cloudflare-api`, `cloudflare-bindings`,
+  `cloudflare-observability`…). Es la pieza más útil del stack: cubre DNS y edge
+  aunque el hosting esté en otro proveedor.
+- **Hetzner (VPS)** — no existe MCP oficial. Para **provisionar** (evento raro:
+  crear el servidor, firewall, redes) las opciones agente-friendly son la CLI oficial
+  `hcloud` vía Bash, o el MCP comunitario más completo,
+  [`@lazyants/hetzner-mcp-server`](https://github.com/lazyants/hetzner-mcp-server)
+  (185 tools, incluye DNS y Storage Boxes): se añade con
+  `claude mcp add hetzner --env HETZNER_API_TOKEN=xxx -- npx -y @lazyants/hetzner-mcp-server`.
+  Usa un token **read-only** salvo durante el aprovisionamiento.
+- **Administración del VPS día a día** (deploy, logs, docker, systemd) — **sin MCP**:
+  `ssh` directo por Bash (con claves y `~/.ssh/config`) y la herramienta de deploy del
+  **preset elegido en `docs/stacks/`** (p. ej. Kamal en Rails, Wrangler en Workers,
+  `flyctl` o Docker Compose en otros) — la regla es del producto, no del stack.
+  Los MCP de SSH solo tienen sentido en clientes sin shell (Claude Desktop/web).
+- **Si se prefiere MCP oficial de primera clase con VPS**: DigitalOcean es el único
+  proveedor con Droplets + MCP oficial maduro y hospedado (~2× el precio de Hetzner).
+
+## Guardrails deterministas (activos por defecto)
 
 Las reglas de [`AGENTS.md`](../../AGENTS.md) le dicen al agente qué **debería** hacer, pero
-no lo obligan. Para una garantía dura, esta plantilla incluye dos hooks opt-in que
-**bloquean de forma determinista** — el agente no puede saltárselos:
+no lo obligan. Para una garantía dura, esta plantilla trae tres hooks que
+**bloquean de forma determinista** — el agente no puede saltárselos — y vienen
+**activados en `.claude/settings.json`**:
 
 - [`.claude/hooks/git-guardrails.sh`](../../.claude/hooks/git-guardrails.sh) — bloquea
   las acciones que rompen el branching de [`../../CONTRIBUTING.md`](../../CONTRIBUTING.md):
-  commits o push directos a `main`/`develop` y force-push a ramas compartidas. Cubre
-  también `git -C <ruta>` y comandos encadenados con `&&`.
+  commits, merges locales o push directos a `main`/`develop`, force-push a ramas
+  compartidas, y **crear ramas de trabajo desde `main`** (deben nacer de `develop`;
+  únicas excepciones: crear la propia `develop` y las `hotfix/*`). Cubre también
+  `git -C <ruta>` y comandos encadenados con `&&`.
 - [`.claude/hooks/secret-guardrails.sh`](../../.claude/hooks/secret-guardrails.sh) —
   bloquea escrituras del agente sobre archivos de secretos: el `.env` real (y variantes
   como `.env.local`) y llaves privadas (`*.pem`, `id_rsa`…). `.env.example` sí se puede
   editar: es el contrato, sin valores reales.
+- [`.claude/hooks/spec-guardrails.sh`](../../.claude/hooks/spec-guardrails.sh) — hace
+  cumplir "sin spec no hay cambio": en ramas `feat/*`/`fix/*` bloquea la edición de
+  código mientras no exista `specs/NNNN-<slug-de-la-rama>/`. Documentación
+  (`docs/`, `*.md`), las specs mismas y el tooling (`.claude/`, `.github/`) quedan exentos.
 
-No están activos por defecto. Para habilitarlos, añade los hooks a
-`.claude/settings.local.json` (personal) o a `.claude/settings.json` (compartido):
-
-```json
-{
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/git-guardrails.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "Write|Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/secret-guardrails.sh"
-          }
-        ]
-      }
-    ]
-  }
-}
-```
-
-Requieren `python3` (para leer el evento). Ambos scripts fallan _abiertos_: ante la duda
-permiten, para no trabar el flujo. Sus casos cubiertos están probados en
-`.github/scripts/tests/run-tests.sh` (corre en CI). La skill `/instanciar` ofrece
-activarlos en su paso de permisos.
+Para desactivar alguno (no recomendado), elimina su bloque de `hooks.PreToolUse` en
+`.claude/settings.json`. Requieren `python3` (para leer el evento). Los tres scripts
+fallan _abiertos_: ante la duda permiten, para no trabar el flujo. Sus casos cubiertos
+están probados en `.github/scripts/tests/run-tests.sh` (corre en CI).

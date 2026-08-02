@@ -84,6 +84,9 @@ git push origin hotfix/descripcion-del-fix
 
 ### Políticas de ramas
 
+- **`develop` es la rama por defecto del repositorio en GitHub**: los PRs nuevos y los
+  de Dependabot apuntan ahí; `main` solo recibe merges de `develop` (release) o
+  `hotfix/*`.
 - `main` y `develop` están protegidas: no se permite push directo, solo vía PR aprobado.
 - Mantén tu rama actualizada con `develop` (rebase o merge) antes de abrir el PR.
 
@@ -152,14 +155,20 @@ docs: actualiza la guía de instalación
 - Ejecuta la suite completa antes de abrir el PR ([COMANDO_TEST]).
 - Sigue las [convenciones de testing](docs/conventions/testing.md).
 
-## Cambios basados en especificaciones (opcional)
+## Cambios basados en especificaciones (obligatorio)
 
-Para trabajo no trivial, captura la intención antes de programar usando el flujo
-ligero de [`specs/`](specs/README.md): un `proposal.md` breve, una lista de tareas
-`tasks.md` y una nota de diseño `design.md`. Copia
-[`specs/_template/`](specs/_template) (o usa la skill `/new-spec`) en
-`specs/<nombre-del-cambio>/`, pásalo por revisión y luego impleméntalo. Los arreglos
-pequeños no necesitan especificación.
+**Toda funcionalidad o corrección (`feat/*`, `fix/*`) nace de una especificación.**
+Antes de programar, captura la intención con el flujo ligero de
+[`specs/`](specs/README.md): un `proposal.md` breve, una lista de tareas `tasks.md` y
+una nota de diseño `design.md`. Copia [`specs/_template/`](specs/_template) (o usa la
+skill `/new-spec`) en `specs/NNNN-<nombre-del-cambio>/`, pásalo por revisión y luego
+impleméntalo.
+
+- **La rama y la spec comparten nombre**: `feat/login-google` ↔
+  `specs/NNNN-login-google/`. El hook `spec-guardrails.sh` bloquea la edición de
+  código en ramas `feat/*`/`fix/*` sin su spec.
+- Los cambios de documentación pura van en ramas `docs/*` (sin spec); el
+  mantenimiento de tooling, en `chore/*`.
 
 ## Trabajo con agentes de IA
 

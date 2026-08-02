@@ -1,9 +1,13 @@
 ---
 name: instanciar
-description: Instancia esta plantilla en un proyecto real mediante una entrevista guiada — detecta si el proyecto es nuevo o existente, rellena los placeholders, adapta los docs al tipo de proyecto y decide la política de permisos. Úsalo cuando la persona clone/adopte esta plantilla y quiera configurarla para su proyecto (p. ej. "instancia esta plantilla", "configura este template para mi proyecto", "arranca el proyecto desde esta base").
+description: Paso interno de /arrancar-proyecto que rellena la plantilla (placeholders, limpieza por tipo, permisos). NO es el comando de arranque — si la persona quiere empezar un proyecto ("instancia la plantilla", "configura este template", "arranquemos"), usa /arrancar-proyecto, que invoca este flujo en su Paso 3. Invócalo directo solo para el caso especial de adoptar la capa de documentación en un proyecto EXISTENTE con código.
 ---
 
 <!-- Skill de ejemplo de la plantilla — adáptalo o elimínalo según tu proyecto. -->
+
+> **Punto de entrada:** el comando de arranque es `/arrancar-proyecto`; este flujo es su
+> Paso 3. Si alguien lo invoca directo sobre un proyecto nuevo, redirígelo a
+> `/arrancar-proyecto` (que además prepara las ramas Git Flow antes de tocar nada).
 
 Convierte esta plantilla en la documentación real de un proyecto mediante una entrevista.
 Lee `TEMPLATE-USAGE.md` primero: es la fuente de verdad del catálogo de placeholders (§3),
@@ -40,15 +44,20 @@ inferir. En proyectos existentes, pre-rellena las respuestas leyendo el código.
 - **Lote B · Identidad:** nombre, autor, usuario/org de GitHub, empresa (opcional),
   email de soporte, email de seguridad, licencia y año. Infiere autor/usuario de
   `git config` y el año de la fecha del sistema.
-- **Lote C · Stack:** runtime, gestor de paquetes, base de datos (o "ninguna"), puerto,
-  comandos (instalar / dev / test / lint). En existente: LÉELO del código, no preguntes.
+- **Lote C · Stack:** ofrece primero los **presets de `docs/stacks/`** (web-fullstack,
+  spa-api, api-service, mobile, web-estatica, pwa, extension-navegador) según el tipo
+  del Lote A; el preset elegido rellena `docs/architecture/stack.md` y solo se pregunta
+  por las desviaciones. Si ninguno aplica, pregunta pieza a pieza: runtime, gestor de
+  paquetes, base de datos (o "ninguna"), puerto, comandos (instalar / dev / test / lint).
+  En existente: LÉELO del código, no preguntes.
 - **Lote D · Capacidades:** ¿API? ¿autenticación? ¿i18n? ¿SEO/web pública? ¿emails
   transaccionales? ¿sistema de diseño/UI? (Cada "no" implica borrar su convención.)
 - **Lote E · Permisos y guardrails:** ¿dejar el `ask:[Bash]` conservador de
   `.claude/settings.json`, o crear `.claude/settings.local.json` con una allowlist de
-  solo-lectura? ¿Activar los **guardrails de git** (hook opt-in que bloquea commits/push
-  a `main`/`develop` y force-push)? ¿Y los **guardrails de secretos** (hook opt-in que
-  bloquea escrituras del agente sobre `.env` reales y llaves privadas)?
+  solo-lectura? Los tres **guardrails** (git, secretos y specs) vienen **activos por
+  defecto** en `.claude/settings.json` — no preguntes si activarlos; solo si la
+  persona pide explícitamente desactivar alguno, quita su bloque de hooks y deja
+  constancia en el ADR de instanciación.
 
 ## Paso 3 — Rellenar / fusionar según contexto
 
@@ -83,10 +92,9 @@ echo, pwd, which`, y `git status/log/diff/branch/show/remote`). Verifica que
 `.claude/settings.local.json` esté en `.gitignore`. Si se eligió "conservador", no toques
 nada de permisos.
 
-Si se aceptaron los **guardrails de git** y/o los **guardrails de secretos**, añade los
-bloques `hooks.PreToolUse` que apuntan a `.claude/hooks/git-guardrails.sh` (matcher
-`Bash`) y `.claude/hooks/secret-guardrails.sh` (matcher `Write|Edit`) — el JSON completo
-está en `docs/conventions/ai-agents.md`. Requieren `python3`.
+Los guardrails ya vienen activos en `.claude/settings.json` (git-guardrails,
+secret-guardrails y spec-guardrails; requieren `python3`) — solo toca esos bloques si
+la persona pidió desactivar alguno en el Lote E.
 
 ## Paso 5 — Limpieza por tipo (regla de TEMPLATE-USAGE.md §7)
 
@@ -104,6 +112,8 @@ Borra los docs/convenciones que no apliquen:
   `.github/workflows/template-parity.yml`, el script `.github/scripts/check-parity.sh`
   y la skill `.claude/skills/portar-cambio/` — solo sirven para mantener la familia de
   variantes, no a un proyecto instanciado.
+- **Conserva** `.github/workflows/template-update-check.yml`: es el que avisa al
+  proyecto instanciado (vía issue) cuando la plantilla de origen publica mejoras.
 
 Pregunta antes de borrar en bloque si hay ambigüedad.
 

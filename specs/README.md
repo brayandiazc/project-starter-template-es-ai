@@ -4,12 +4,16 @@ Esta carpeta contiene **especificaciones de cambios**: una forma breve y estruct
 un cambio y _por qué_ **antes** de escribir código. Les da tanto a las personas como a los agentes de IA
 un objetivo claro y un punto de revisión, sin un proceso pesado.
 
-> Opcional pero recomendado para cambios no triviales. Las correcciones pequeñas no necesitan una especificación.
+> **Obligatorio para toda funcionalidad y corrección** (`feat/*`, `fix/*`): el hook
+> `spec-guardrails.sh` bloquea la edición de código en esas ramas si no existe la
+> spec correspondiente. Ver [`../docs/conventions/workflow.md`](../docs/conventions/workflow.md).
 
 ## Cuándo escribir una especificación
 
-Escribe una cuando un cambio sea no trivial, toque varias partes del sistema o
-valga la pena alinearse antes de la implementación. Omítela para erratas y cambios de una línea.
+Siempre que el cambio sea una funcionalidad o una corrección: la rama `feat/<slug>` o
+`fix/<slug>` debe tener su `specs/NNNN-<slug>/` **antes** de tocar código (créala con
+`/new-spec`). Solo quedan fuera los cambios de documentación pura (ramas `docs/*`) y
+el mantenimiento de tooling (ramas `chore/*`).
 
 ## Cómo funciona
 

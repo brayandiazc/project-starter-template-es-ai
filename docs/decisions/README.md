@@ -34,6 +34,9 @@ nuevo que reemplace al anterior.
 
 ## Índice
 
-| ADR                                           | Título                                   | Estado   |
-| --------------------------------------------- | ---------------------------------------- | -------- |
-| [0001](0001-record-architecture-decisions.md) | Registrar las decisiones de arquitectura | Aceptada |
+| ADR                                                      | Título                                                           | Estado   |
+| -------------------------------------------------------- | ---------------------------------------------------------------- | -------- |
+| [0001](0001-record-architecture-decisions.md)            | Registrar las decisiones de arquitectura                         | Aceptada |
+| [0002](0002-catalogo-de-stacks-y-defaults.md)            | Catálogo de stacks predefinidos y defaults de producto/diseño    | Aceptada |
+| [0003](0003-flujo-de-trabajo-guiado.md)                  | Flujo de trabajo guiado: SDD + agentes + acompañamiento          | Aceptada |
+| [0004](0004-guardrails-obligatorios-y-arranque-unico.md) | Guardrails obligatorios (opt-out) y arranque con un solo comando | Aceptada |

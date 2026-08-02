@@ -24,4 +24,9 @@ Crea una nueva especificación de cambio cuyo nombre está en `$ARGUMENTS`.
 Ejemplo: `/new-spec rediseño del checkout` → `specs/0007-checkout-redesign/` (si la
 última especificación era la `0006`).
 
+**Rama ↔ spec:** la rama que implemente esta spec debe llamarse `feat/<change-name>`
+(o `fix/<change-name>`) — mismo slug. El hook `spec-guardrails.sh` bloquea editar
+código en ramas `feat/*`/`fix/*` cuya spec no exista, así que crea la spec ANTES de
+crear la rama de implementación (o desde la rama, antes de tocar código).
+
 NO empieces a implementar el cambio, y NO elimines ni sobrescribas una carpeta de especificación existente — si `specs/<change-name>/` ya existe, detente y pregunta.

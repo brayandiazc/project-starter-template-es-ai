@@ -8,6 +8,12 @@ description: Corta una nueva versión — mueve la sección Unreleased del CHANG
 Corta una versión siguiendo Keep a Changelog y Semantic Versioning (ver `CHANGELOG.md`
 y `CONTRIBUTING.md`).
 
+> **Automatización:** al fusionar `develop` → `main`, el workflow
+> `.github/workflows/release.yml` detecta la versión fechada más reciente del
+> CHANGELOG y, si no tiene tag, publica el tag y el release de GitHub solo. Esta
+> skill prepara el corte (mover Unreleased → `X.Y.Z` con fecha y elegir la versión
+> SemVer); el tag/release manual solo hace falta si el workflow no está activo.
+
 ## Pasos
 
 1. **Precondiciones.** Verifica que el árbol esté limpio (`git status`) y que estés en la

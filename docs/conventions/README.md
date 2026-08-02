@@ -26,6 +26,7 @@ feature concreta.
 | [testing.md](testing.md)                           | Estrategia y estándares de testing |
 | [transactional-emails.md](transactional-emails.md) | Correos transaccionales            |
 | [views-and-layouts.md](views-and-layouts.md)       | Vistas, layouts y UI compartida    |
+| [workflow.md](workflow.md)                         | Flujo de trabajo SDD con agentes   |
 
 ## Agregar una convención
 
