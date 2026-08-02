@@ -52,6 +52,16 @@ if [ -f "$GIT_HOOK" ]; then
   run_git_hook "$TMP/repo-feat" "git push --force origin feat/x"; check "force-push → bloquea" 2 $?
   run_git_hook "$TMP" "git -C $TMP/repo-main commit -m x"; check "git -C <repo en main> commit → bloquea" 2 $?
   run_git_hook "$TMP" "git -C $TMP/repo-feat commit -m x"; check "git -C <repo en feat> commit → permite" 0 $?
+  run_git_hook "$TMP/repo-main" "git merge feat/x"; check "merge local en main → bloquea" 2 $?
+  run_git_hook "$TMP/repo-main" "git checkout -b feat/y"; check "crear feat/* desde main → bloquea" 2 $?
+  run_git_hook "$TMP/repo-main" "git switch -c fix/z"; check "switch -c fix/* desde main → bloquea" 2 $?
+  run_git_hook "$TMP/repo-main" "git branch feat/y"; check "git branch feat/* en main → bloquea" 2 $?
+  run_git_hook "$TMP/repo-main" "git checkout -b develop"; check "crear develop desde main → permite" 0 $?
+  run_git_hook "$TMP/repo-main" "git checkout -b hotfix/urgente"; check "crear hotfix/* desde main → permite" 0 $?
+  run_git_hook "$TMP/repo-feat" "git checkout -b feat/z"; check "crear rama desde feat → permite" 0 $?
+  run_git_hook "$TMP/repo-feat" "git checkout -b feat/z main"; check "crear rama con base main explícita → bloquea" 2 $?
+  run_git_hook "$TMP/repo-main" "git branch --list"; check "git branch --list en main → permite" 0 $?
+  run_git_hook "$TMP/repo-main" "git checkout feat/x"; check "checkout sin crear rama → permite" 0 $?
 fi
 
 # ── secret-guardrails.sh ──────────────────────────────────────────────────────
@@ -64,6 +74,34 @@ if [ -f "$SECRET_HOOK" ]; then
   run_secret_hook "/proyecto/.env.example"; check "escribir .env.example → permite" 0 $?
   run_secret_hook "/proyecto/certs/server.pem"; check "escribir *.pem → bloquea" 2 $?
   run_secret_hook "/proyecto/README.md"; check "escribir README.md → permite" 0 $?
+fi
+
+# ── spec-guardrails.sh ────────────────────────────────────────────────────────
+SPEC_HOOK="$REPO_ROOT/.claude/hooks/spec-guardrails.sh"
+if [ -f "$SPEC_HOOK" ]; then
+  echo "spec-guardrails.sh:"
+  run_spec_hook() { bash "$SPEC_HOOK" <<<"$(write_payload "$1")" 2>/dev/null; }
+
+  # Repo en rama feat/login-google con carpeta specs/ pero sin la spec.
+  git -C "$TMP" init -q -b feat/login-google repo-spec
+  mkdir -p "$TMP/repo-spec/specs" "$TMP/repo-spec/app" "$TMP/repo-spec/docs"
+
+  run_spec_hook "$TMP/repo-spec/app/user.rb"; check "feat sin spec, editar código → bloquea" 2 $?
+  run_spec_hook "$TMP/repo-spec/docs/guia.txt"; check "feat sin spec, editar docs/ → permite" 0 $?
+  run_spec_hook "$TMP/repo-spec/README.md"; check "feat sin spec, editar *.md → permite" 0 $?
+  run_spec_hook "$TMP/repo-spec/specs/0001-login-google/proposal.md"; check "feat sin spec, crear la spec → permite" 0 $?
+
+  mkdir -p "$TMP/repo-spec/specs/0001-login-google"
+  run_spec_hook "$TMP/repo-spec/app/user.rb"; check "feat con spec homónima → permite" 0 $?
+
+  # Rama docs/* queda fuera de la regla; sin specs/ el hook no impone nada.
+  git -C "$TMP" init -q -b docs/arranque repo-spec-docs
+  mkdir -p "$TMP/repo-spec-docs/x"
+  run_spec_hook "$TMP/repo-spec-docs/x/archivo.rb"; check "rama docs/* → permite" 0 $?
+
+  git -C "$TMP" init -q -b fix/bug repo-spec-nospecs
+  mkdir -p "$TMP/repo-spec-nospecs/lib"
+  run_spec_hook "$TMP/repo-spec-nospecs/lib/a.rb"; check "fix sin carpeta specs/ en el repo → permite" 0 $?
 fi
 
 # ── check-placeholders.sh ─────────────────────────────────────────────────────
