@@ -1,7 +1,7 @@
 <!--
   ┌─────────────────────────────────────────────────────────────────────────┐
   │  Esto es una PLANTILLA. Antes de publicar tu proyecto:                     │
-  │  0. ¿Usas Claude Code? Escribe /instanciar para el arranque guiado.        │
+  │  0. ¿Usas Claude Code? Escribe /arrancar-proyecto para el arranque guiado.        │
   │  1. Lee TEMPLATE-USAGE.md para saber cómo instanciarla.                    │
   │  2. Reemplaza todos los [PLACEHOLDERS] (búscalos con grep, ver guía).      │
   │  3. Borra los documentos que no apliquen a tu proyecto.                    │

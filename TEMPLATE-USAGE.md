@@ -10,7 +10,9 @@ Esta guía explica cómo convertir esta plantilla en la documentación real de t
 
 ## 2. Instanciar la plantilla
 
-**Opción rápida con IA:** si usas Claude Code, abre el repo y escribe `/instanciar`; el
+**Opción rápida con IA:** si usas Claude Code, abre el repo y escribe `/arrancar-proyecto`
+(el comando único de arranque: prepara las ramas Git Flow, corre el sprint de definición
+e instancia la plantilla); el
 skill hace la entrevista y rellena todo por ti — detecta si el proyecto es nuevo o
 existente. El resto de esta guía es el proceso manual equivalente, por si lo prefieres.
 
@@ -90,6 +92,7 @@ grep -rno '\[[A-ZÁÉÍÓÚÑ0-9_/]\+\]' --include='*.md' --include='.env.exampl
 | `[SEGMENTO_*]`, `[PLAN_*]`, `[PRECIO]`, `[PORCENTAJE]`                                                                 | Modelo de negocio                                       |
 | `[ELEGIDA]`, `[DESCARTADA]`, `[ALTERNATIVA]`                                                                           | Comparativas en decisiones (stack, diseño)              |
 | `[HERRAMIENTA_IA]`, `[EMAIL_HERRAMIENTA_IA]`                                                                           | Herramienta de IA y su email (trailer de coautoría)     |
+| `[FORMA_JURÍDICA]`, `[DOMICILIO_LEGAL]`, `[IDENTIFICACIÓN_TRIBUTARIA]`, `[JURISDICCIÓN]`, `[EDAD_MÍNIMA]`              | Marco legal (`legal/`)                                  |
 | `[TIPO]`, `[OTRO]`, `[EJEMPLO]`, `[COMANDO]`, `[NOMBRES]`, `[PROVEEDOR]`, `[RECURSO]`, `[RIESGO]`, `[OTRAS_VARIABLES]` | Descriptivos locales de cada documento                  |
 
 > Mantén este catálogo actualizado: cualquier `[PLACEHOLDER]` nuevo que introduzcas debería
@@ -98,35 +101,40 @@ grep -rno '\[[A-ZÁÉÍÓÚÑ0-9_/]\+\]' --include='*.md' --include='.env.exampl
 ## 4. Orden recomendado de llenado
 
 1. `README.md` — la portada del proyecto.
-2. `docs/architecture/stack.md` — define el stack.
-3. `docs/architecture/architecture.md` — vista de alto nivel.
-4. `docs/architecture/database.md` — modelo de datos.
-5. `docs/architecture/auth.md` — autenticación y autorización.
-6. `docs/architecture/api.md` — contrato de API.
-7. `docs/architecture/design.md` — diseño técnico / UI-UX.
-8. `docs/product/business-model.md` — modelo de negocio.
-9. `docs/product/roadmap.md` — roadmap.
-10. `docs/decisions/` — crea un ADR cada vez que tomes una decisión relevante.
+2. `docs/stacks/` — elige el preset de stack para el tipo de proyecto.
+3. `docs/architecture/stack.md` — define el stack (parte del preset elegido).
+4. `docs/architecture/architecture.md` — vista de alto nivel.
+5. `docs/architecture/database.md` — modelo de datos.
+6. `docs/architecture/auth.md` — autenticación y autorización.
+7. `docs/architecture/api.md` — contrato de API.
+8. `docs/architecture/design.md` — diseño técnico / UI-UX (los tokens base están en `design/`).
+9. `docs/product/business-model.md` — modelo de negocio.
+10. `docs/product/product-definition.md` — visión, alcance de la v1 y fuera de alcance.
+11. `docs/product/roadmap.md` — roadmap.
+12. `docs/decisions/` — crea un ADR cada vez que tomes una decisión relevante.
 
 ## 5. Inventario de archivos
 
-| Archivo                       | Propósito                                 | ¿Obligatorio?        |
-| ----------------------------- | ----------------------------------------- | -------------------- |
-| `README.md`                   | Portada del proyecto                      | Sí                   |
-| `CONTRIBUTING.md`             | Cómo contribuir y flujo Git               | Recomendado          |
-| `CODE_OF_CONDUCT.md`          | Código de conducta                        | Recomendado          |
-| `SECURITY.md`                 | Política de seguridad                     | Recomendado          |
-| `CHANGELOG.md`                | Historial de cambios                      | Recomendado          |
-| `LICENSE`                     | Licencia                                  | Sí                   |
-| `.env.example`                | Contrato de variables de entorno          | Si hay configuración |
-| `.gitignore`, `.editorconfig` | Higiene del repo                          | Recomendado          |
-| `.github/`                    | Plantillas de issues/PR, automatizaciones | Opcional             |
-| `.github/workflows/`          | CI activo (calidad de docs, secretos)     | Recomendado          |
-| `.github/scripts/`            | Scripts de verificación y sus pruebas     | Recomendado          |
-| `docs/architecture/*`         | Documentación técnica                     | Según necesidad      |
-| `docs/product/*`              | Negocio y roadmap                         | Según necesidad      |
-| `docs/decisions/*`            | Registro de decisiones (ADR)              | Recomendado          |
-| `docs/conventions/*`          | Convenciones de trabajo                   | Según necesidad      |
+| Archivo                       | Propósito                                                 | ¿Obligatorio?        |
+| ----------------------------- | --------------------------------------------------------- | -------------------- |
+| `README.md`                   | Portada del proyecto                                      | Sí                   |
+| `CONTRIBUTING.md`             | Cómo contribuir y flujo Git                               | Recomendado          |
+| `CODE_OF_CONDUCT.md`          | Código de conducta                                        | Recomendado          |
+| `SECURITY.md`                 | Política de seguridad                                     | Recomendado          |
+| `CHANGELOG.md`                | Historial de cambios                                      | Recomendado          |
+| `LICENSE`                     | Licencia                                                  | Sí                   |
+| `.env.example`                | Contrato de variables de entorno                          | Si hay configuración |
+| `.gitignore`, `.editorconfig` | Higiene del repo                                          | Recomendado          |
+| `.github/`                    | Plantillas de issues/PR, automatizaciones                 | Opcional             |
+| `.github/workflows/`          | CI activo (calidad de docs, secretos)                     | Recomendado          |
+| `.github/scripts/`            | Scripts de verificación y sus pruebas                     | Recomendado          |
+| `docs/stacks/*`               | Catálogo de stacks predefinidos por tipo                  | Recomendado          |
+| `design/*`                    | Tokens de identidad visual por defecto                    | Si hay UI            |
+| `legal/*`                     | Marco legal base bilingüe (términos, privacidad, cookies) | Si es público        |
+| `docs/architecture/*`         | Documentación técnica                                     | Según necesidad      |
+| `docs/product/*`              | Negocio, definición de producto y roadmap                 | Según necesidad      |
+| `docs/decisions/*`            | Registro de decisiones (ADR)                              | Recomendado          |
+| `docs/conventions/*`          | Convenciones de trabajo                                   | Según necesidad      |
 
 ### Qué borrar si no aplica
 
@@ -200,12 +208,14 @@ Esta es la variante **lista para IA**. Sobre la base de documentación añade:
   agente de IA. **[`CLAUDE.md`](CLAUDE.md)** es un puente de una línea que lo importa
   (Claude Code lee `CLAUDE.md`; otras herramientas leen `AGENTS.md` — mismo contenido,
   dos nombres).
-- **[`.claude/agents/`](.claude/agents)** — **subagentes** de ejemplo (architect,
-  code-reviewer, test-author, doc-keeper, security-reviewer, debugger, explorer).
-- **[`.claude/skills/`](.claude/skills)** — **skills** de ejemplo (instanciar, new-adr,
-  new-spec, commit, open-issue, open-pr, changelog, release, actualizar-plantilla,
-  seo-audit, i18n-parity, design-system-audit, copywriting, accessibility-audit,
-  refactor, migration-guard; `portar-cambio` es exclusiva del repo-plantilla).
+- **[`.claude/agents/`](.claude/agents)** — **subagentes** de ejemplo (product-coach,
+  designer, metrics-analyst, architect, code-reviewer, test-author, doc-keeper,
+  security-reviewer, debugger, explorer).
+- **[`.claude/skills/`](.claude/skills)** — **skills** de ejemplo (arrancar-proyecto,
+  instanciar, definir-producto, prototipo, configurar-repo, new-adr, new-spec, commit,
+  open-issue, open-pr, changelog, release, actualizar-plantilla, seo-audit,
+  i18n-parity, design-system-audit, copywriting, accessibility-audit, refactor,
+  migration-guard; `portar-cambio` es exclusiva del repo-plantilla).
 - **[`.claude/hooks/`](.claude/hooks)** — **guardrails deterministas** opt-in
   (git-guardrails y secret-guardrails; ver
   [`docs/conventions/ai-agents.md`](docs/conventions/ai-agents.md)).

@@ -3,19 +3,21 @@
 Mapa de la documentación del proyecto. Empieza por aquí para saber qué documento
 responde cada pregunta.
 
-| Documento                                                      | Pregunta que responde                | Cuándo leerlo                   |
-| -------------------------------------------------------------- | ------------------------------------ | ------------------------------- |
-| [`architecture/architecture.md`](architecture/architecture.md) | ¿Cómo está construido el sistema?    | Al entender el panorama general |
-| [`architecture/stack.md`](architecture/stack.md)               | ¿Con qué tecnologías y versiones?    | Al configurar el entorno        |
-| [`architecture/database.md`](architecture/database.md)         | ¿Qué entidades y relaciones hay?     | Al trabajar con datos           |
-| [`architecture/auth.md`](architecture/auth.md)                 | ¿Cómo se entra y qué se permite?     | Al tocar autenticación/permisos |
-| [`architecture/api.md`](architecture/api.md)                   | ¿Qué endpoints expone?               | Al integrar o consumir la API   |
-| [`architecture/design.md`](architecture/design.md)             | ¿Cómo se ve y por qué?               | Al diseñar features o UI        |
-| [`product/business-model.md`](product/business-model.md)       | ¿Por qué existe / cómo genera valor? | Para entender el negocio        |
-| [`product/roadmap.md`](product/roadmap.md)                     | ¿Hacia dónde va?                     | Para conocer prioridades        |
-| [`decisions/`](decisions/README.md)                            | ¿Por qué tomamos cada decisión?      | Antes de re-debatir algo        |
-| [`conventions/`](conventions/README.md)                        | ¿Cómo trabajamos en este repo?       | Antes de escribir código        |
-| [`glossary.md`](glossary.md)                                   | ¿Qué significa cada término?         | Ante vocabulario desconocido    |
+| Documento                                                        | Pregunta que responde                         | Cuándo leerlo                   |
+| ---------------------------------------------------------------- | --------------------------------------------- | ------------------------------- |
+| [`architecture/architecture.md`](architecture/architecture.md)   | ¿Cómo está construido el sistema?             | Al entender el panorama general |
+| [`architecture/stack.md`](architecture/stack.md)                 | ¿Con qué tecnologías y versiones?             | Al configurar el entorno        |
+| [`stacks/`](stacks/README.md)                                    | ¿Qué stack elegir para cada tipo de proyecto? | Al arrancar un proyecto nuevo   |
+| [`architecture/database.md`](architecture/database.md)           | ¿Qué entidades y relaciones hay?              | Al trabajar con datos           |
+| [`architecture/auth.md`](architecture/auth.md)                   | ¿Cómo se entra y qué se permite?              | Al tocar autenticación/permisos |
+| [`architecture/api.md`](architecture/api.md)                     | ¿Qué endpoints expone?                        | Al integrar o consumir la API   |
+| [`architecture/design.md`](architecture/design.md)               | ¿Cómo se ve y por qué?                        | Al diseñar features o UI        |
+| [`product/business-model.md`](product/business-model.md)         | ¿Por qué existe / cómo genera valor?          | Para entender el negocio        |
+| [`product/product-definition.md`](product/product-definition.md) | ¿Qué es la v1 y qué queda fuera?              | Antes de construir features     |
+| [`product/roadmap.md`](product/roadmap.md)                       | ¿Hacia dónde va?                              | Para conocer prioridades        |
+| [`decisions/`](decisions/README.md)                              | ¿Por qué tomamos cada decisión?               | Antes de re-debatir algo        |
+| [`conventions/`](conventions/README.md)                          | ¿Cómo trabajamos en este repo?                | Antes de escribir código        |
+| [`glossary.md`](glossary.md)                                     | ¿Qué significa cada término?                  | Ante vocabulario desconocido    |
 
 ## Sobre la distinción `architecture/` vs `conventions/`
 
