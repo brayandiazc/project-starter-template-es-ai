@@ -1,0 +1,132 @@
+/* Tokens de diseño base (derivados del tema Phareto).
+ * Stack: Tailwind CSS v4 (CSS-first) + DaisyUI v5, tema único.
+ *
+ * Uso en un proyecto Tailwind v4 + DaisyUI: copia el bloque @plugin a tu
+ * application.css. Uso fuera de DaisyUI: importa este archivo y consume las
+ * variables --color-* directamente. Nunca uses hex crudos en componentes. */
+
+@plugin "./daisyui-theme.mjs" {
+  name: "base";
+  default: true;
+  prefersdark: false;
+  color-scheme: light;
+
+  /* Superficies */
+  --color-base-100: oklch(100% 0 0); /* blanco */
+  --color-base-200: oklch(98.4% 0.003 247.858); /* slate-50 */
+  --color-base-300: oklch(96.8% 0.007 247.896); /* slate-100 */
+  --color-base-content: oklch(20.8% 0.042 265.755); /* slate-900 */
+
+  /* Primario (CTA, branding) */
+  --color-primary: oklch(20.8% 0.042 265.755); /* slate oscuro */
+  --color-primary-content: oklch(100% 0 0);
+
+  /* Secundario */
+  --color-secondary: oklch(44.6% 0.043 257.281); /* slate-600 */
+  --color-secondary-content: oklch(100% 0 0);
+
+  /* Acento (destacados, premium) */
+  --color-accent: oklch(70% 0.18 50); /* cobre */
+  --color-accent-content: oklch(100% 0 0);
+
+  /* Neutral */
+  --color-neutral: oklch(37.2% 0.044 257.287); /* slate-700 */
+  --color-neutral-content: oklch(100% 0 0);
+
+  /* Estados */
+  --color-info: oklch(62.3% 0.214 259.815);
+  --color-info-content: oklch(100% 0 0);
+  --color-success: oklch(69.6% 0.17 162.48);
+  --color-success-content: oklch(100% 0 0);
+  --color-warning: oklch(76.9% 0.188 70.08);
+  --color-warning-content: oklch(20.8% 0.042 265.755);
+  --color-error: oklch(64.5% 0.246 16.439);
+  --color-error-content: oklch(100% 0 0);
+
+  /* Geometría */
+  --radius-selector: 0.5rem;
+  --radius-field: 0.5rem;
+  --radius-box: 0.75rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+
+  /* Tipografía */
+  --font-sans:
+    "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+/* Tema oscuro — activo por defecto vía prefers-color-scheme; también
+ * conmutable con data-theme="base-dark" (toggle en la UI). */
+@plugin "./daisyui-theme.mjs" {
+  name: "base-dark";
+  default: false;
+  prefersdark: true;
+  color-scheme: dark;
+
+  --color-base-100: oklch(20.8% 0.042 265.755); /* slate-900 */
+  --color-base-200: oklch(27.9% 0.041 260.031); /* slate-800 */
+  --color-base-300: oklch(37.2% 0.044 257.287); /* slate-700 */
+  --color-base-content: oklch(98.4% 0.003 247.858);
+
+  --color-primary: oklch(96.8% 0.007 247.896); /* claro sobre oscuro */
+  --color-primary-content: oklch(20.8% 0.042 265.755);
+  --color-secondary: oklch(71.1% 0.035 256.788); /* slate-400 */
+  --color-secondary-content: oklch(20.8% 0.042 265.755);
+  --color-accent: oklch(75% 0.16 55); /* cobre más claro */
+  --color-accent-content: oklch(20.8% 0.042 265.755);
+  --color-neutral: oklch(44.6% 0.043 257.281);
+  --color-neutral-content: oklch(98.4% 0.003 247.858);
+
+  --color-info: oklch(71.4% 0.143 254.624);
+  --color-info-content: oklch(20.8% 0.042 265.755);
+  --color-success: oklch(76.5% 0.177 163.223);
+  --color-success-content: oklch(20.8% 0.042 265.755);
+  --color-warning: oklch(82.8% 0.189 84.429);
+  --color-warning-content: oklch(20.8% 0.042 265.755);
+  --color-error: oklch(71.2% 0.194 13.428);
+  --color-error-content: oklch(20.8% 0.042 265.755);
+
+  --radius-selector: 0.5rem;
+  --radius-field: 0.5rem;
+  --radius-box: 0.75rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+
+  --font-sans:
+    "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+/* ---- Variables sueltas (para proyectos sin DaisyUI: Astro simple, emails no) ---- */
+
+:root {
+  /* Titulares/display — cae a --font-sans si el producto quiere sobriedad total */
+  --font-display:
+    "Space Grotesk", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  /* Motion */
+  --motion-micro: 150ms; /* hover, toggles */
+  --motion-transition: 250ms; /* entradas/salidas */
+  --ease-enter: cubic-bezier(0, 0, 0.2, 1); /* ease-out */
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1); /* ease-in */
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

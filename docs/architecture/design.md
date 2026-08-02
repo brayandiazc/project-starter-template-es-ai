@@ -33,6 +33,19 @@
 | ------------- | ------ | --------- | --------------------- |
 | [ALTERNATIVA] | [Pros] | [Contras] | [Razón]               |
 
+## Mapa de pantallas
+
+> Salida del paso "Mapear" del sprint de definición
+> ([`workflow.md`](../conventions/workflow.md)) — parte del catálogo estándar de
+> vistas y añade las propias del recorrido crítico.
+
+| Vista          | Ruta    | Propósito             | Estado (mapa/prototipo/conectada) |
+| -------------- | ------- | --------------------- | --------------------------------- |
+| [Landing]      | `/`     | [Convertir visitante] | [mapa]                            |
+| [Vista propia] | [/ruta] | [Acción de valor]     | [mapa]                            |
+
+Flujo del usuario (recorrido crítico): [vista → vista → vista].
+
 ## Identidad visual y sistema de diseño
 
 - **Principios de diseño**: [Claridad, consistencia, etc.].

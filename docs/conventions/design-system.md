@@ -21,6 +21,8 @@
 | Bordes/sombras | [radios, elevaciones]           |
 
 > Usa **tokens semánticos** (p. ej. `color-primario`), no valores crudos, en los componentes.
+> Los valores por defecto (paleta, tipografías, iconografía Lucide) vienen de
+> [`design/`](../../design/README.md) — parte de ahí y desvíate solo a propósito.
 
 ## Componentes permitidos
 

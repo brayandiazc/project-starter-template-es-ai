@@ -1,0 +1,600 @@
+<!doctype html>
+<html lang="es" data-theme="base">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Design system — preview</title>
+<!-- Preview de desarrollo: usa CDNs por comodidad. En producción los proyectos
+     compilan Tailwind v4 + DaisyUI con los tokens de tokens.css y cargan las
+     fuentes self-hosted vía Fontsource. -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5/daisyui.css" />
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono&display=swap"
+  rel="stylesheet"
+/>
+<style>
+  /* Temas "base" y "base-dark" — mismos valores que tokens.css (fuente de verdad). */
+  [data-theme="base"] {
+    color-scheme: light;
+    --color-base-100: oklch(100% 0 0);
+    --color-base-200: oklch(98.4% 0.003 247.858);
+    --color-base-300: oklch(96.8% 0.007 247.896);
+    --color-base-content: oklch(20.8% 0.042 265.755);
+    --color-primary: oklch(20.8% 0.042 265.755);
+    --color-primary-content: oklch(100% 0 0);
+    --color-secondary: oklch(44.6% 0.043 257.281);
+    --color-secondary-content: oklch(100% 0 0);
+    --color-accent: oklch(70% 0.18 50);
+    --color-accent-content: oklch(100% 0 0);
+    --color-neutral: oklch(37.2% 0.044 257.287);
+    --color-neutral-content: oklch(100% 0 0);
+    --color-info: oklch(62.3% 0.214 259.815);
+    --color-info-content: oklch(100% 0 0);
+    --color-success: oklch(69.6% 0.17 162.48);
+    --color-success-content: oklch(100% 0 0);
+    --color-warning: oklch(76.9% 0.188 70.08);
+    --color-warning-content: oklch(20.8% 0.042 265.755);
+    --color-error: oklch(64.5% 0.246 16.439);
+    --color-error-content: oklch(100% 0 0);
+    --radius-selector: 0.5rem;
+    --radius-field: 0.5rem;
+    --radius-box: 0.75rem;
+    --border: 1px;
+    --depth: 0;
+    --noise: 0;
+  }
+  [data-theme="base-dark"] {
+    color-scheme: dark;
+    --color-base-100: oklch(20.8% 0.042 265.755);
+    --color-base-200: oklch(27.9% 0.041 260.031);
+    --color-base-300: oklch(37.2% 0.044 257.287);
+    --color-base-content: oklch(98.4% 0.003 247.858);
+    --color-primary: oklch(96.8% 0.007 247.896);
+    --color-primary-content: oklch(20.8% 0.042 265.755);
+    --color-secondary: oklch(71.1% 0.035 256.788);
+    --color-secondary-content: oklch(20.8% 0.042 265.755);
+    --color-accent: oklch(75% 0.16 55);
+    --color-accent-content: oklch(20.8% 0.042 265.755);
+    --color-neutral: oklch(44.6% 0.043 257.281);
+    --color-neutral-content: oklch(98.4% 0.003 247.858);
+    --color-info: oklch(71.4% 0.143 254.624);
+    --color-info-content: oklch(20.8% 0.042 265.755);
+    --color-success: oklch(76.5% 0.177 163.223);
+    --color-success-content: oklch(20.8% 0.042 265.755);
+    --color-warning: oklch(82.8% 0.189 84.429);
+    --color-warning-content: oklch(20.8% 0.042 265.755);
+    --color-error: oklch(71.2% 0.194 13.428);
+    --color-error-content: oklch(20.8% 0.042 265.755);
+    --radius-selector: 0.5rem;
+    --radius-field: 0.5rem;
+    --radius-box: 0.75rem;
+    --border: 1px;
+    --depth: 0;
+    --noise: 0;
+  }
+  body { font-family: "Inter", ui-sans-serif, system-ui, sans-serif; }
+  h1, h2, h3.font-display, .font-display {
+    font-family: "Space Grotesk", "Inter", ui-sans-serif, system-ui, sans-serif;
+  }
+  code, kbd, .font-mono { font-family: "JetBrains Mono", ui-monospace, monospace; }
+  .enter { animation: enter 250ms cubic-bezier(0, 0, 0.2, 1) both; }
+  @keyframes enter { from { opacity: 0; transform: translateY(8px); } }
+  @media (prefers-reduced-motion: reduce) { .enter { animation: none; } }
+</style>
+</head>
+<body class="bg-base-200 text-base-content">
+
+<!-- ▸ Navbar de app (sticky) con menú, buscador y user menu -->
+<div class="navbar sticky top-0 z-40 border-b border-base-300 bg-base-100">
+  <div class="navbar-start">
+    <a class="btn btn-ghost font-display text-lg font-bold">▲ Producto</a>
+    <ul class="menu menu-horizontal hidden gap-1 px-1 md:flex">
+      <li><a class="menu-active">Dashboard</a></li>
+      <li><a>Proyectos</a></li>
+      <li><a>Reportes</a></li>
+    </ul>
+  </div>
+  <div class="navbar-end gap-2">
+    <label class="input input-bordered input-sm hidden items-center gap-2 md:flex">
+      <input type="search" class="grow" placeholder="Buscar…" />
+      <kbd class="kbd kbd-xs">⌘K</kbd>
+    </label>
+    <button class="btn btn-ghost btn-sm" onclick="toggleTheme()" aria-label="Cambiar tema">
+      <span id="theme-icon">🌙</span>
+    </button>
+    <div class="dropdown dropdown-end">
+      <div tabindex="0" role="button" class="avatar avatar-placeholder btn btn-circle btn-ghost">
+        <div class="w-9 rounded-full bg-neutral text-neutral-content"><span>BD</span></div>
+      </div>
+      <ul tabindex="0" class="menu dropdown-content z-50 mt-2 w-52 rounded-box border border-base-300 bg-base-100 p-2 shadow-md">
+        <li><a>Perfil</a></li>
+        <li><a>Ajustes</a></li>
+        <li><a>Facturación</a></li>
+        <li><a class="text-error">Cerrar sesión</a></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<main class="mx-auto max-w-5xl space-y-14 p-6 lg:p-10">
+  <header class="enter space-y-2">
+    <h1 class="text-4xl font-bold">Design system · preview</h1>
+    <p class="text-base-content/70">
+      Temas <code class="kbd kbd-sm">base</code> / <code class="kbd kbd-sm">base-dark</code>
+      (derivados de Phareto) · Space Grotesk + Inter · DaisyUI v5 · iconos Lucide.
+      Usa el 🌙/☀️ del navbar para alternar tema. Fuente de verdad:
+      <code class="kbd kbd-sm">tokens.css</code>.
+    </p>
+  </header>
+
+  <!-- ▸ Hero de landing -->
+  <section class="space-y-4">
+    <h2 class="text-2xl font-semibold">Hero (landing)</h2>
+    <div class="hero rounded-box border border-base-300 bg-base-100 py-14">
+      <div class="hero-content text-center">
+        <div class="max-w-lg space-y-4">
+          <span class="badge badge-accent badge-outline">Nuevo · v1.0</span>
+          <h3 class="font-display text-4xl font-bold leading-tight">
+            Tu titular de valor, directo y en una frase
+          </h3>
+          <p class="text-base-content/70">
+            Subtítulo que explica para quién es y qué cambia. Corto, concreto,
+            sin jerga.
+          </p>
+          <div class="flex justify-center gap-3">
+            <button class="btn btn-primary">Empezar gratis</button>
+            <button class="btn btn-ghost">Ver demo →</button>
+          </div>
+          <p class="text-xs text-base-content/70">Sin tarjeta · Cancela cuando quieras</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ▸ Paleta -->
+  <section class="space-y-4">
+    <h2 class="text-2xl font-semibold">Paleta</h2>
+    <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div class="rounded-box border border-base-300 bg-primary p-4 text-primary-content">primary</div>
+      <div class="rounded-box border border-base-300 bg-secondary p-4 text-secondary-content">secondary</div>
+      <div class="rounded-box border border-base-300 bg-accent p-4 text-accent-content">accent</div>
+      <div class="rounded-box border border-base-300 bg-neutral p-4 text-neutral-content">neutral</div>
+      <div class="rounded-box bg-info p-4 text-info-content">info</div>
+      <div class="rounded-box bg-success p-4 text-success-content">success</div>
+      <div class="rounded-box bg-warning p-4 text-warning-content">warning</div>
+      <div class="rounded-box bg-error p-4 text-error-content">error</div>
+    </div>
+    <div class="grid grid-cols-3 gap-3">
+      <div class="rounded-box border border-base-300 bg-base-100 p-4">base-100</div>
+      <div class="rounded-box border border-base-300 bg-base-200 p-4">base-200</div>
+      <div class="rounded-box border border-base-300 bg-base-300 p-4">base-300</div>
+    </div>
+  </section>
+
+  <!-- ▸ Tipografía -->
+  <section class="space-y-4">
+    <h2 class="text-2xl font-semibold">Tipografía</h2>
+    <div class="card border border-base-300 bg-base-100">
+      <div class="card-body space-y-3">
+        <p class="font-display text-4xl font-bold">Display 4xl — Space Grotesk</p>
+        <p class="font-display text-2xl font-semibold">Sección 2xl — Space Grotesk semibold</p>
+        <p class="text-lg font-medium">Subtítulo lg — Inter medium</p>
+        <p class="text-base">
+          Cuerpo base — Inter regular con
+          <a class="link link-primary" href="#">un enlace</a>,
+          <strong>negrita</strong>, <em>énfasis</em> y
+          <code>codigo_inline()</code> en JetBrains Mono.
+        </p>
+        <p class="text-sm text-base-content/70">Texto secundario sm — base-content al 70%.</p>
+        <p class="text-xs text-base-content/70">Caption xs para metadatos y timestamps.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ▸ Botones -->
+  <section class="space-y-4">
+    <h2 class="text-2xl font-semibold">Botones</h2>
+    <div class="flex flex-wrap items-center gap-3">
+      <button class="btn btn-primary">Primario</button>
+      <button class="btn btn-secondary">Secundario</button>
+      <button class="btn btn-accent">Acento</button>
+      <button class="btn btn-neutral">Neutral</button>
+      <button class="btn btn-ghost">Ghost</button>
+      <button class="btn btn-outline btn-primary">Outline</button>
+      <button class="btn btn-primary" disabled>Deshabilitado</button>
+      <button class="btn btn-primary">
+        <span class="loading loading-spinner loading-sm"></span> Cargando
+      </button>
+      <button class="btn btn-error btn-outline">Destructivo</button>
+    </div>
+    <div class="flex flex-wrap items-center gap-3">
+      <button class="btn btn-primary btn-xs">xs</button>
+      <button class="btn btn-primary btn-sm">sm</button>
+      <button class="btn btn-primary">md</button>
+      <button class="btn btn-primary btn-lg">lg</button>
+      <button class="btn btn-square btn-outline" aria-label="Editar">✎</button>
+      <button class="btn btn-circle btn-primary" aria-label="Añadir">+</button>
+      <div class="join">
+        <button class="btn join-item btn-sm">Día</button>
+        <button class="btn btn-active join-item btn-sm">Semana</button>
+        <button class="btn join-item btn-sm">Mes</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ▸ Badges, alertas y toast -->
+  <section class="space-y-4">
+    <h2 class="text-2xl font-semibold">Badges, alertas y toast</h2>
+    <div class="flex flex-wrap gap-2">
+      <span class="badge badge-primary">primary</span>
+      <span class="badge badge-accent">premium</span>
+      <span class="badge badge-success">activo</span>
+      <span class="badge badge-warning">pendiente</span>
+      <span class="badge badge-error">error</span>
+      <span class="badge badge-outline">outline</span>
+      <span class="badge badge-ghost badge-sm">meta</span>
+    </div>
+    <div class="space-y-2">
+      <div class="alert alert-info"><span>Mensaje informativo con contexto útil.</span></div>
+      <div class="alert alert-success"><span>Guardado correctamente.</span></div>
+      <div class="alert alert-warning"><span>Tu plan está por vencer.</span></div>
+      <div class="alert alert-error">
+        <span>No pudimos procesar el pago.</span>
+        <button class="btn btn-sm">Reintentar</button>
+      </div>
+    </div>
+    <button class="btn btn-sm" onclick="showToast()">Mostrar toast</button>
+    <div id="toast" class="toast toast-end z-50 hidden">
+      <div class="alert alert-success"><span>Cambios guardados.</span></div>
+    </div>
+  </section>
+
+  <!-- ▸ Formulario completo -->
+  <section class="space-y-4">
+    <h2 class="text-2xl font-semibold">Formulario</h2>
+    <div class="card max-w-md border border-base-300 bg-base-100">
+      <div class="card-body space-y-4">
+        <h3 class="card-title font-display">Crear cuenta</h3>
+        <div>
+          <label class="label" for="pv-email"><span class="label-text">Email</span></label>
+          <input id="pv-email" type="email" placeholder="tu@correo.com" class="input input-bordered w-full" />
+        </div>
+        <div>
+          <label class="label" for="pv-pass"><span class="label-text">Contraseña</span></label>
+          <input id="pv-pass" type="password" placeholder="••••••••" class="input input-bordered input-error w-full" />
+          <p class="mt-1 text-xs text-error">Mínimo 8 caracteres.</p>
+        </div>
+        <div>
+          <label class="label" for="pv-plan"><span class="label-text">Plan</span></label>
+          <select id="pv-plan" class="select select-bordered w-full">
+            <option>Free</option><option>Pro</option>
+          </select>
+        </div>
+        <div>
+          <label class="label" for="pv-bio"><span class="label-text">Sobre ti (opcional)</span></label>
+          <textarea id="pv-bio" class="textarea textarea-bordered w-full" rows="2" placeholder="Cuéntanos algo…"></textarea>
+        </div>
+        <div>
+          <label class="label" for="pv-file"><span class="label-text">Avatar</span></label>
+          <input id="pv-file" type="file" class="file-input file-input-bordered w-full" />
+        </div>
+        <div>
+          <label class="label" for="pv-range"><span class="label-text">Usuarios estimados: <b>50</b></span></label>
+          <input id="pv-range" type="range" min="0" max="100" value="50" class="range range-primary" />
+        </div>
+        <label class="flex items-center gap-2">
+          <input type="checkbox" class="checkbox checkbox-primary" checked />
+          <span class="text-sm">Acepto los <a class="link" href="#">términos</a></span>
+        </label>
+        <label class="flex items-center gap-2">
+          <input type="checkbox" class="toggle toggle-primary" checked />
+          <span class="text-sm">Recibir novedades</span>
+        </label>
+        <div class="card-actions justify-end">
+          <button class="btn btn-ghost">Cancelar</button>
+          <button class="btn btn-primary">Crear cuenta</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ▸ Pricing -->
+  <section class="space-y-4">
+    <h2 class="text-2xl font-semibold">Pricing</h2>
+    <div class="grid gap-4 sm:grid-cols-2">
+      <div class="card border border-base-300 bg-base-100">
+        <div class="card-body">
+          <h3 class="card-title font-display">Free</h3>
+          <p class="font-display text-3xl font-bold">$0<span class="text-sm font-normal text-base-content/70">/mes</span></p>
+          <ul class="space-y-1 text-sm">
+            <li>✓ 1 proyecto</li>
+            <li>✓ Funciones básicas</li>
+            <li class="text-base-content/50">✗ Soporte prioritario</li>
+          </ul>
+          <div class="card-actions mt-2"><button class="btn btn-outline btn-block">Empezar</button></div>
+        </div>
+      </div>
+      <div class="card border-2 border-accent bg-base-100">
+        <div class="card-body">
+          <div class="flex items-center justify-between">
+            <h3 class="card-title font-display">Pro</h3>
+            <span class="badge badge-accent">Popular</span>
+          </div>
+          <p class="font-display text-3xl font-bold">$12<span class="text-sm font-normal text-base-content/70">/mes</span></p>
+          <ul class="space-y-1 text-sm">
+            <li>✓ Proyectos ilimitados</li>
+            <li>✓ Todas las funciones</li>
+            <li>✓ Soporte prioritario</li>
+          </ul>
+          <div class="card-actions mt-2"><button class="btn btn-primary btn-block">Elegir Pro</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ▸ Stats, progreso y cards -->
+  <section class="space-y-4">
+    <h2 class="text-2xl font-semibold">Stats y progreso</h2>
+    <div class="stats w-full border border-base-300 bg-base-100 max-sm:stats-vertical">
+      <div class="stat">
+        <div class="stat-title">Usuarios</div>
+        <div class="stat-value">1,204</div>
+        <div class="stat-desc text-success">+12% este mes</div>
+      </div>
+      <div class="stat">
+        <div class="stat-title">MRR</div>
+        <div class="stat-value">$3.1k</div>
+        <div class="stat-desc">meta: $5k</div>
+      </div>
+      <div class="stat">
+        <div class="stat-title">Churn</div>
+        <div class="stat-value text-error">2.4%</div>
+        <div class="stat-desc">últimos 30 días</div>
+      </div>
+    </div>
+    <div class="grid items-center gap-4 sm:grid-cols-3">
+      <div class="card border border-base-300 bg-base-100">
+        <div class="card-body">
+          <p class="text-sm">Uso del cupo</p>
+          <progress class="progress progress-primary" value="70" max="100"></progress>
+          <p class="text-xs text-base-content/70">70 de 100 renders</p>
+        </div>
+      </div>
+      <div class="card border border-base-300 bg-base-100">
+        <div class="card-body items-center">
+          <div class="radial-progress text-accent" style="--value:82" role="progressbar" aria-valuenow="82">82%</div>
+          <p class="text-xs text-base-content/70">Perfil completo</p>
+        </div>
+      </div>
+      <div class="card border border-base-300 bg-base-100">
+        <div class="card-body">
+          <div class="skeleton h-4 w-3/4"></div>
+          <div class="skeleton h-4 w-1/2"></div>
+          <p class="text-xs text-base-content/70">Loading: skeleton, no spinner global.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ▸ Tabla, tabs, paginación -->
+  <section class="space-y-4">
+    <h2 class="text-2xl font-semibold">Tabla, tabs y paginación</h2>
+    <div role="tablist" class="tabs tabs-border">
+      <a role="tab" class="tab tab-active">Resumen</a>
+      <a role="tab" class="tab">Actividad</a>
+      <a role="tab" class="tab">Ajustes</a>
+    </div>
+    <div class="overflow-x-auto rounded-box border border-base-300 bg-base-100">
+      <table class="table">
+        <thead><tr><th><input type="checkbox" class="checkbox checkbox-sm" aria-label="Seleccionar todo" /></th><th>Cliente</th><th>Plan</th><th>Estado</th><th></th></tr></thead>
+        <tbody>
+          <tr class="hover:bg-base-200">
+            <td><input type="checkbox" class="checkbox checkbox-sm" aria-label="Seleccionar fila" /></td>
+            <td class="flex items-center gap-2">
+              <div class="avatar avatar-placeholder"><div class="w-8 rounded-full bg-secondary text-secondary-content"><span class="text-xs">AL</span></div></div>
+              Ada Lovelace
+            </td>
+            <td>Pro</td>
+            <td><span class="badge badge-success badge-sm">activa</span></td>
+            <td><button class="btn btn-ghost btn-xs">Ver</button></td>
+          </tr>
+          <tr class="hover:bg-base-200">
+            <td><input type="checkbox" class="checkbox checkbox-sm" aria-label="Seleccionar fila" /></td>
+            <td class="flex items-center gap-2">
+              <div class="avatar avatar-placeholder"><div class="w-8 rounded-full bg-accent text-accent-content"><span class="text-xs">GH</span></div></div>
+              Grace Hopper
+            </td>
+            <td>Free</td>
+            <td><span class="badge badge-warning badge-sm">trial</span></td>
+            <td><button class="btn btn-ghost btn-xs">Ver</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="flex items-center justify-between">
+      <div class="breadcrumbs text-sm">
+        <ul><li><a>Inicio</a></li><li><a>Clientes</a></li><li>Listado</li></ul>
+      </div>
+      <div class="join">
+        <button class="btn join-item btn-sm">«</button>
+        <button class="btn join-item btn-sm">1</button>
+        <button class="btn btn-active join-item btn-sm">2</button>
+        <button class="btn join-item btn-sm">3</button>
+        <button class="btn join-item btn-sm">»</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ▸ Wizard, timeline y tooltip -->
+  <section class="space-y-4">
+    <h2 class="text-2xl font-semibold">Wizard, timeline y tooltip</h2>
+    <ul class="steps w-full">
+      <li class="step step-primary">Cuenta</li>
+      <li class="step step-primary">Configuración</li>
+      <li class="step">Pago</li>
+      <li class="step">Listo</li>
+    </ul>
+    <ul class="timeline timeline-vertical timeline-compact">
+      <li>
+        <div class="timeline-middle">✅</div>
+        <div class="timeline-end timeline-box">Cuenta creada <span class="text-xs text-base-content/70">· hace 2 días</span></div>
+        <hr class="bg-primary" />
+      </li>
+      <li>
+        <hr class="bg-primary" />
+        <div class="timeline-middle">✅</div>
+        <div class="timeline-end timeline-box">Primer proyecto <span class="text-xs text-base-content/70">· ayer</span></div>
+        <hr />
+      </li>
+      <li>
+        <hr />
+        <div class="timeline-middle">⭕</div>
+        <div class="timeline-end timeline-box text-base-content/70">Invitar al equipo</div>
+      </li>
+    </ul>
+    <div class="flex items-center gap-4">
+      <div class="tooltip" data-tip="Explicación corta al pasar el mouse">
+        <button class="btn btn-sm">Hover: tooltip</button>
+      </div>
+      <div class="avatar-group -space-x-3">
+        <div class="avatar avatar-placeholder"><div class="w-9 bg-primary text-primary-content"><span class="text-xs">AL</span></div></div>
+        <div class="avatar avatar-placeholder"><div class="w-9 bg-secondary text-secondary-content"><span class="text-xs">GH</span></div></div>
+        <div class="avatar avatar-placeholder"><div class="w-9 bg-accent text-accent-content"><span class="text-xs">MC</span></div></div>
+        <div class="avatar avatar-placeholder"><div class="w-9 bg-neutral text-neutral-content"><span class="text-xs">+5</span></div></div>
+      </div>
+      <div class="rating rating-sm" aria-label="Valoración 4 de 5">
+        <input type="radio" name="pv-rating" class="mask mask-star-2 bg-warning" aria-label="1" />
+        <input type="radio" name="pv-rating" class="mask mask-star-2 bg-warning" aria-label="2" />
+        <input type="radio" name="pv-rating" class="mask mask-star-2 bg-warning" aria-label="3" />
+        <input type="radio" name="pv-rating" class="mask mask-star-2 bg-warning" checked aria-label="4" />
+        <input type="radio" name="pv-rating" class="mask mask-star-2 bg-warning" aria-label="5" />
+      </div>
+    </div>
+  </section>
+
+  <!-- ▸ FAQ y chat -->
+  <section class="space-y-4">
+    <h2 class="text-2xl font-semibold">FAQ (accordion) y chat</h2>
+    <div class="join join-vertical w-full">
+      <div class="collapse-arrow join-item collapse border border-base-300 bg-base-100">
+        <input type="radio" name="pv-faq" checked />
+        <div class="collapse-title font-medium">¿Puedo cancelar cuando quiera?</div>
+        <div class="collapse-content text-sm text-base-content/70">
+          Sí. La cancelación aplica al final del ciclo ya pagado.
+        </div>
+      </div>
+      <div class="collapse-arrow join-item collapse border border-base-300 bg-base-100">
+        <input type="radio" name="pv-faq" />
+        <div class="collapse-title font-medium">¿Hay periodo de prueba?</div>
+        <div class="collapse-content text-sm text-base-content/70">
+          El plan Free no expira; puedes probar todo lo esencial sin tarjeta.
+        </div>
+      </div>
+    </div>
+    <div class="card border border-base-300 bg-base-100">
+      <div class="card-body">
+        <div class="chat chat-start">
+          <div class="chat-bubble">Hola, ¿me ayudas con la factura?</div>
+          <div class="chat-footer text-xs opacity-60">10:02</div>
+        </div>
+        <div class="chat chat-end">
+          <div class="chat-bubble chat-bubble-primary">¡Claro! Te la reenvío ahora mismo.</div>
+          <div class="chat-footer text-xs opacity-60">10:03 · Visto</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ▸ Empty state y modal -->
+  <section class="space-y-4">
+    <h2 class="text-2xl font-semibold">Empty state y modal</h2>
+    <div class="card border border-dashed border-base-300 bg-base-100">
+      <div class="card-body items-center py-12 text-center">
+        <p class="text-4xl" aria-hidden="true">📂</p>
+        <h3 class="font-display font-semibold">Aún no hay proyectos</h3>
+        <p class="max-w-sm text-sm text-base-content/70">
+          Crea tu primer proyecto para empezar. Un empty state siempre orienta:
+          mensaje + acción.
+        </p>
+        <button class="btn btn-primary btn-sm">Crear proyecto</button>
+      </div>
+    </div>
+    <button class="btn" onclick="document.getElementById('pv-modal').showModal()">Abrir modal</button>
+    <dialog id="pv-modal" class="modal">
+      <div class="modal-box">
+        <h3 class="font-display text-lg font-bold">¿Eliminar proyecto?</h3>
+        <p class="py-3 text-sm text-base-content/70">
+          Esta acción no se puede deshacer. Los datos se borrarán de forma permanente.
+        </p>
+        <div class="modal-action">
+          <form method="dialog" class="flex gap-2">
+            <button class="btn btn-ghost">Cancelar</button>
+            <button class="btn btn-error">Eliminar</button>
+          </form>
+        </div>
+      </div>
+      <form method="dialog" class="modal-backdrop"><button>cerrar</button></form>
+    </dialog>
+  </section>
+
+  <!-- ▸ Páginas de error -->
+  <section class="space-y-4">
+    <h2 class="text-2xl font-semibold">Página de error (404/500)</h2>
+    <div class="card border border-base-300 bg-base-100">
+      <div class="card-body items-center py-12 text-center">
+        <p class="font-display text-6xl font-bold text-base-content/30">404</p>
+        <h3 class="font-display text-xl font-semibold">Esta página no existe</h3>
+        <p class="max-w-sm text-sm text-base-content/70">
+          El enlace puede estar roto o la página fue movida.
+        </p>
+        <div class="flex gap-2">
+          <button class="btn btn-primary btn-sm">Ir al inicio</button>
+          <button class="btn btn-ghost btn-sm">Contactar soporte</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ▸ Footer -->
+<footer class="footer border-t border-base-300 bg-base-100 p-10 text-base-content sm:footer-horizontal">
+  <aside>
+    <p class="font-display text-lg font-bold">▲ Producto</p>
+    <p class="text-sm text-base-content/70">Una frase de qué hace.<br />© 2026 Empresa</p>
+  </aside>
+  <nav>
+    <h6 class="footer-title">Producto</h6>
+    <a class="link-hover link">Precios</a>
+    <a class="link-hover link">Changelog</a>
+  </nav>
+  <nav>
+    <h6 class="footer-title">Legal</h6>
+    <a class="link-hover link">Términos</a>
+    <a class="link-hover link">Privacidad</a>
+    <a class="link-hover link">Cookies</a>
+  </nav>
+  <nav>
+    <h6 class="footer-title">Idioma / tema</h6>
+    <select class="select select-bordered select-sm w-32">
+      <option>Español</option><option>English</option>
+    </select>
+  </nav>
+</footer>
+
+<script>
+  function toggleTheme() {
+    var html = document.documentElement;
+    var dark = html.getAttribute("data-theme") === "base-dark";
+    html.setAttribute("data-theme", dark ? "base" : "base-dark");
+    document.getElementById("theme-icon").textContent = dark ? "🌙" : "☀️";
+  }
+  function showToast() {
+    var t = document.getElementById("toast");
+    t.classList.remove("hidden");
+    setTimeout(function () { t.classList.add("hidden"); }, 2500);
+  }
+</script>
+</body>
+</html>
