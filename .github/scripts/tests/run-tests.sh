@@ -52,6 +52,16 @@ if [ -f "$GIT_HOOK" ]; then
   run_git_hook "$TMP/repo-feat" "git push --force origin feat/x"; check "force-push → bloquea" 2 $?
   run_git_hook "$TMP" "git -C $TMP/repo-main commit -m x"; check "git -C <repo en main> commit → bloquea" 2 $?
   run_git_hook "$TMP" "git -C $TMP/repo-feat commit -m x"; check "git -C <repo en feat> commit → permite" 0 $?
+  run_git_hook "$TMP/repo-main" "git merge feat/x"; check "merge local en main → bloquea" 2 $?
+  run_git_hook "$TMP/repo-main" "git checkout -b feat/y"; check "crear feat/* desde main → bloquea" 2 $?
+  run_git_hook "$TMP/repo-main" "git switch -c fix/z"; check "switch -c fix/* desde main → bloquea" 2 $?
+  run_git_hook "$TMP/repo-main" "git branch feat/y"; check "git branch feat/* en main → bloquea" 2 $?
+  run_git_hook "$TMP/repo-main" "git checkout -b develop"; check "crear develop desde main → permite" 0 $?
+  run_git_hook "$TMP/repo-main" "git checkout -b hotfix/urgente"; check "crear hotfix/* desde main → permite" 0 $?
+  run_git_hook "$TMP/repo-feat" "git checkout -b feat/z"; check "crear rama desde feat → permite" 0 $?
+  run_git_hook "$TMP/repo-feat" "git checkout -b feat/z main"; check "crear rama con base main explícita → bloquea" 2 $?
+  run_git_hook "$TMP/repo-main" "git branch --list"; check "git branch --list en main → permite" 0 $?
+  run_git_hook "$TMP/repo-main" "git checkout feat/x"; check "checkout sin crear rama → permite" 0 $?
 fi
 
 # ── secret-guardrails.sh ──────────────────────────────────────────────────────
