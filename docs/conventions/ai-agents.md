@@ -82,47 +82,27 @@ Claude Code pide aprobación antes de usar cualquier servidor MCP del proyecto.
 ## Guardrails deterministas (opcional)
 
 Las reglas de [`AGENTS.md`](../../AGENTS.md) le dicen al agente qué **debería** hacer, pero
-no lo obligan. Para una garantía dura, esta plantilla incluye dos hooks opt-in que
-**bloquean de forma determinista** — el agente no puede saltárselos:
+no lo obligan. Para una garantía dura, esta plantilla incluye dos hooks que
+**bloquean de forma determinista** — el agente no puede saltárselos — y vienen
+**activos** en `.claude/settings.json`:
 
 - [`.claude/hooks/git-guardrails.sh`](../../.claude/hooks/git-guardrails.sh) — bloquea
   las acciones que rompen el branching de [`../../CONTRIBUTING.md`](../../CONTRIBUTING.md):
-  commits o push directos a `main`/`develop` y force-push a ramas compartidas. Cubre
-  también `git -C <ruta>` y comandos encadenados con `&&`.
+  commits, merges locales o push directos a `main`/`develop`, force-push a ramas
+  compartidas, y **crear ramas de trabajo desde `main`** (deben nacer de `develop`;
+  únicas excepciones: crear la propia `develop` y las `hotfix/*`). Cubre también
+  `git -C <ruta>` y comandos encadenados con `&&`.
 - [`.claude/hooks/secret-guardrails.sh`](../../.claude/hooks/secret-guardrails.sh) —
   bloquea escrituras del agente sobre archivos de secretos: el `.env` real (y variantes
   como `.env.local`) y llaves privadas (`*.pem`, `id_rsa`…). `.env.example` sí se puede
   editar: es el contrato, sin valores reales.
 
-No están activos por defecto. Para habilitarlos, añade los hooks a
-`.claude/settings.local.json` (personal) o a `.claude/settings.json` (compartido):
+Vienen **activos** en `.claude/settings.json`. Para desactivar alguno (no
+recomendado), elimina su bloque de `hooks.PreToolUse`; para añadir ajustes personales,
+usa `.claude/settings.local.json`.
 
-```json
-{
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/git-guardrails.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "Write|Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/secret-guardrails.sh"
-          }
-        ]
-      }
-    ]
-  }
-}
-```
+Un guardrail que viaja apagado no guarda nada: la experiencia dice que lo opcional no
+se activa, así que el valor por defecto es que estén puestos.
 
 Requieren `python3` (para leer el evento). Ambos scripts fallan _abiertos_: ante la duda
 permiten, para no trabar el flujo. Sus casos cubiertos están probados en
