@@ -149,6 +149,19 @@ if [ -f "$CHECK_SKILLS" ]; then
   (bash "$CHECK_SKILLS" "$TMP/sk-none" >/dev/null); check "repo sin capa de IA → pasa" 0 $?
 fi
 
+# ── Estructura de .github/workflows/ ──────────────────────────────────────────
+# GitHub ejecuta CUALQUIER .yml/.yaml de esa carpeta, sin mirar el resto del
+# nombre: un `ci.example.yml` se ejecuta de verdad y sale en verde sin probar
+# nada. Lo que no deba ejecutarse no puede terminar en .yml/.yaml.
+WORKFLOWS="$REPO_ROOT/.github/workflows"
+if [ -d "$WORKFLOWS" ]; then
+  echo "estructura de .github/workflows:"
+  ejemplos_ejecutables="$(ls "$WORKFLOWS" | grep -Ei '(example|sample|plantilla|template)\.ya?ml$' || true)"
+  [ -z "$ejemplos_ejecutables" ]
+  check "ningún workflow de ejemplo termina en .yml/.yaml" 0 $?
+  [ -n "$ejemplos_ejecutables" ] && printf '     · %s\n' $ejemplos_ejecutables
+fi
+
 # ── Resumen ───────────────────────────────────────────────────────────────────
 echo ""
 echo "Resultado: $pass OK, $fail fallidas."
