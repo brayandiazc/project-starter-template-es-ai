@@ -159,16 +159,16 @@ if [ -f "$CHECK_SKILLS" ]; then
   (bash "$CHECK_SKILLS" "$TMP/sk-none" >/dev/null); check "repo sin capa de IA → pasa" 0 $?
 fi
 
-# ── check-herencia.sh ─────────────────────────────────────────────────────────
-CHECK_HERENCIA="$REPO_ROOT/.github/scripts/check-herencia.sh"
-if [ -f "$CHECK_HERENCIA" ]; then
-  echo "check-herencia.sh:"
+# ── check-inheritance.sh ─────────────────────────────────────────────────────────
+CHECK_INHERITANCE="$REPO_ROOT/.github/scripts/check-inheritance.sh"
+if [ -f "$CHECK_INHERITANCE" ]; then
+  echo "check-inheritance.sh:"
 
   instancia() { # $1 = nombre, $2 = fecha de instanciación
     mkdir -p "$TMP/$1/docs/decisions"
     printf 'repo=https://github.com/x/y\ncommit=abc\nfecha=%s\n' "$2" >"$TMP/$1/.template-origin"
   }
-  run_herencia() { (bash "$CHECK_HERENCIA" "$TMP/$1" > /dev/null 2>&1); }
+  run_herencia() { (bash "$CHECK_INHERITANCE" "$TMP/$1" > /dev/null 2>&1); }
 
   # Sin .template-origin no es una instancia: la plantilla misma no se toca.
   mkdir -p "$TMP/hr-plantilla"
