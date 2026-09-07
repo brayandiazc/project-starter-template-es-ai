@@ -15,9 +15,12 @@ Lista de tareas de implementación. Manténla ordenada; marca los elementos a me
 ## Documentación
 
 - [ ] Actualizar los `docs/` correspondientes y `CHANGELOG.md`
+- [ ] Marcar como hecho el **Ítem de roadmap** declarado en `proposal.md` dentro de
+      [`../../docs/product/roadmap.md`](../../docs/product/roadmap.md) — o anotar ahí
+      el desvío si el cambio terminó cubriendo algo distinto
 - [ ] Añadir un ADR si se tomó una decisión duradera (`docs/decisions/`)
 
 ## Revisión y despliegue
 
-- [ ] Autorrevisión / `code-reviewer`
+- [ ] Autorrevisión / `/code-review`
 - [ ] Abrir PR usando la plantilla de PR

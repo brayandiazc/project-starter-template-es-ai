@@ -3,8 +3,6 @@ name: migration-guard
 description: Revisa una migración de base de datos antes de desplegarla para asegurar que sea segura — reversible, no destructiva y compatible hacia atrás — siguiendo las convenciones de base de datos del proyecto. Úsala siempre que crees, revises o apruebes una migración de esquema o de datos (p. ej. "revisa esta migración", "¿es seguro desplegar esta migración?").
 ---
 
-<!-- Skill de ejemplo de la plantilla — adáptalo o elimínalo según tu proyecto. -->
-
 Revisa la migración que indique la persona (o la del diff actual) en busca de riesgos.
 
 1. Lee [`docs/conventions/database.md`](../../../docs/conventions/database.md) para

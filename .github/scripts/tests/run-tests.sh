@@ -12,6 +12,11 @@ SECRET_HOOK="$REPO_ROOT/.claude/hooks/secret-guardrails.sh"
 CHECK_PLACEHOLDERS="$REPO_ROOT/.github/scripts/check-placeholders.sh"
 CHECK_LINKS="$REPO_ROOT/.github/scripts/check-links.sh"
 CHECK_SKILLS="$REPO_ROOT/.github/scripts/check-skills.sh"
+CHECK_CHANGELOG="$REPO_ROOT/.github/scripts/check-changelog.sh"
+CHECK_RELEASE="$REPO_ROOT/.github/scripts/check-release.sh"
+DESIGN_MD="$REPO_ROOT/.github/scripts/design-md.sh"
+CHECK_INSTRUCCIONES="$REPO_ROOT/.github/scripts/check-instructions.sh"
+CHECK_HOOKS="$REPO_ROOT/.github/scripts/check-hooks-enabled.sh"
 
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
@@ -38,6 +43,7 @@ write_payload() { printf '{"tool_input":{"file_path":"%s"}}' "$1"; }
 # Repos git de utilería: uno en main, otro en una rama de feature.
 git -C "$TMP" init -q -b main repo-main
 git -C "$TMP" init -q -b feat/x repo-feat
+git -C "$TMP" init -q -b develop repo-develop
 
 # ── git-guardrails.sh ─────────────────────────────────────────────────────────
 if [ -f "$GIT_HOOK" ]; then
@@ -50,6 +56,30 @@ if [ -f "$GIT_HOOK" ]; then
   run_git_hook "$TMP/repo-main" "git push origin main"; check "push desde main → bloquea" 2 $?
   run_git_hook "$TMP/repo-feat" "git push origin feat/x"; check "push desde feat → permite" 0 $?
   run_git_hook "$TMP/repo-feat" "git push --force origin feat/x"; check "force-push → bloquea" 2 $?
+
+  # Un tag no actualiza ninguna rama: empujarlo desde una protegida no se salta ningún
+  # PR, y es lo que pide el paso 8 de /release cuando release.yml no está activo.
+  # `git tag` necesita un commit al que apuntar; repo-main se crea vacío.
+  git -C "$TMP/repo-main" -c user.email=t@t -c user.name=t commit -qm t --allow-empty
+  git -C "$TMP/repo-main" tag v9.9.9
+  run_git_hook "$TMP/repo-main" "git push origin v9.9.9"; check "push de un tag desde main → permite" 0 $?
+  run_git_hook "$TMP/repo-main" "git push origin refs/tags/v9.9.9"; check "push de un tag con ruta completa → permite" 0 $?
+  run_git_hook "$TMP/repo-main" "git push --tags origin"; check "push --tags desde main → permite" 0 $?
+  # …pero solo si TODO lo empujado son tags.
+  run_git_hook "$TMP/repo-main" "git push origin v9.9.9 main"; check "tag + rama protegida → bloquea" 2 $?
+  run_git_hook "$TMP/repo-main" "git push origin no-es-un-tag"; check "refspec que no es tag → bloquea" 2 $?
+  run_git_hook "$TMP/repo-main" "git push"; check "push a secas desde main → bloquea" 2 $?
+
+  # Una redirección NO es un refspec. Sin esto, `git push origin v9.9.9 2>&1` dejaba
+  # refs="v9.9.9,2>&1", no había ningún tag llamado "2>&1" y el push se bloqueaba como
+  # si moviera una rama. Pasaba siempre que se redirigía la salida.
+  run_git_hook "$TMP/repo-main" "git push origin v9.9.9 2>&1"; check "tag con 2>&1 → permite" 0 $?
+  run_git_hook "$TMP/repo-main" "git push origin v9.9.9 >/dev/null"; check "tag con >/dev/null → permite" 0 $?
+  run_git_hook "$TMP/repo-main" "git push origin v9.9.9 2>&1 | tail -2"; check "tag con redirección y pipe → permite" 0 $?
+  # Y la protección sigue intacta con redirección de por medio.
+  run_git_hook "$TMP/repo-main" "git push origin main 2>&1"; check "rama protegida con 2>&1 → sigue bloqueando" 2 $?
+  run_git_hook "$TMP/repo-main" "git push origin v9.9.9 main 2>&1"; check "tag + rama con redirección → sigue bloqueando" 2 $?
+  run_git_hook "$TMP/repo-main" "git push --force origin v9.9.9"; check "force-push de un tag → bloquea" 2 $?
   run_git_hook "$TMP" "git -C $TMP/repo-main commit -m x"; check "git -C <repo en main> commit → bloquea" 2 $?
   run_git_hook "$TMP" "git -C $TMP/repo-feat commit -m x"; check "git -C <repo en feat> commit → permite" 0 $?
   run_git_hook "$TMP/repo-main" "git merge feat/x"; check "merge local en main → bloquea" 2 $?
@@ -62,6 +92,109 @@ if [ -f "$GIT_HOOK" ]; then
   run_git_hook "$TMP/repo-feat" "git checkout -b feat/z main"; check "crear rama con base main explícita → bloquea" 2 $?
   run_git_hook "$TMP/repo-main" "git branch --list"; check "git branch --list en main → permite" 0 $?
   run_git_hook "$TMP/repo-main" "git checkout feat/x"; check "checkout sin crear rama → permite" 0 $?
+
+  # Back-merge post-release: `--ff-only` no crea historial y debe pasar; un pull
+  # de OTRA rama es un merge encubierto y sigue las reglas del merge. (El hook
+  # bloqueaba `merge --ff-only origin/main` y dejaba pasar `git pull origin main`,
+  # que es lo mismo con merge commit implícito: la forma segura bloqueada y la
+  # peligrosa abierta.)
+  # La base se normaliza: `origin/main` y `remotes/origin/main` SON main — la
+  # forma idiomática tras un fetch (`checkout -b feat/x origin/main`) se colaba.
+  run_git_hook "$TMP/repo-main" "git checkout -b feat/w origin/main"; check "crear feat/* desde origin/main → bloquea" 2 $?
+  run_git_hook "$TMP/repo-main" "git switch -c fix/w remotes/origin/main"; check "crear fix/* desde remotes/origin/main → bloquea" 2 $?
+  run_git_hook "$TMP/repo-main" "git checkout -b feat/w upstream/main"; check "crear feat/* desde upstream/main → bloquea" 2 $?
+  run_git_hook "$TMP/repo-main" "git checkout -b develop origin/main"; check "crear develop desde origin/main → permite" 0 $?
+
+  run_git_hook "$TMP/repo-main" "git merge --ff-only origin/main"; check "merge --ff-only en main → permite" 0 $?
+  run_git_hook "$TMP/repo-main" "git pull"; check "pull a secas en main → permite" 0 $?
+  run_git_hook "$TMP/repo-main" "git pull origin main"; check "pull de la propia rama en main → permite" 0 $?
+  run_git_hook "$TMP/repo-main" "git pull origin develop"; check "pull de otra rama en main → bloquea" 2 $?
+  run_git_hook "$TMP/repo-main" "git pull --ff-only origin develop"; check "pull --ff-only de otra rama → permite" 0 $?
+  run_git_hook "$TMP/repo-feat" "git pull origin develop"; check "pull de otra rama en feat → permite" 0 $?
+
+  # Borrar una rama ya fusionada es higiene de Git Flow, no un push de estado: el
+  # estado del que se hace push no es el destino del push (fricción 7 de un arranque real —
+  # borrar chore/corte-v0.1.0 tras fusionarlo se bloqueaba desde develop).
+  run_git_hook "$TMP/repo-main" "git push origin --delete chore/corte-v0.1.0"; check "borrar rama de trabajo desde protegida → permite" 0 $?
+  run_git_hook "$TMP/repo-main" "git push origin :chore/x"; check "borrado con refspec ':rama' → permite" 0 $?
+  # …pero borrar una PROTEGIDA es justo lo que la regla quiere impedir.
+  run_git_hook "$TMP/repo-main" "git push origin --delete main"; check "borrar main del remoto → bloquea" 2 $?
+  run_git_hook "$TMP/repo-feat" "git push origin :develop"; check "borrar develop vía ':develop' → bloquea" 2 $?
+  run_git_hook "$TMP/repo-main" "git push origin --delete chore/x main"; check "borrado mezclado con protegida → bloquea" 2 $?
+  # ':' a secas es "matching branches", no un borrado: sigue la regla general.
+  run_git_hook "$TMP/repo-main" "git push origin :"; check "push de matching branches desde main → bloquea" 2 $?
+
+  # PreToolUse evalúa la línea entera ANTES de ejecutarla: en `git tag vX && git
+  # push origin vX` el tag no existe aún al clasificar el push (fricción 8 de
+  # un arranque real — bloqueaba el paso 8 de /release). Lo con forma de versión es un tag.
+  run_git_hook "$TMP/repo-main" "git tag -a v0.1.0 -m x && git push origin v0.1.0"; check "tag recién creado en comando compuesto → permite" 0 $?
+  run_git_hook "$TMP/repo-main" "git push origin 1.2.3"; check "tag con forma de versión sin 'v' → permite" 0 $?
+  run_git_hook "$TMP/repo-main" "git push origin v1.2.3-rc.1"; check "tag de prerelease inexistente → permite" 0 $?
+  # …y lo que no la tiene sigue cayendo como rama (además del test 'no-es-un-tag').
+  run_git_hook "$TMP/repo-main" "git tag v0.1.0 && git push origin v0.1.0 main"; check "tag nuevo + rama protegida → bloquea" 2 $?
+
+  # ── Scripts de VARIAS LÍNEAS ───────────────────────────────────────────────
+  # El salto de línea separa comandos igual que `&&`, pero shlex lo borraba y los
+  # argumentos acababan atribuidos al comando ANTERIOR: `git pull` adoptaba el
+  # nombre del `git checkout -b` de la línea siguiente y se bloqueaba como merge
+  # encubierto de una rama que ni siquiera existía todavía. Falso positivo sobre la
+  # secuencia más común que hay —sincronizar develop y ramificar desde ella—, que
+  # además prescribe la propia skill /instanciar.
+  #
+  # Hasta ahora el banco solo probaba comandos sueltos, y el fallo solo aparece con
+  # scripts de varias líneas: exactamente como los escribe un agente. Va un caso por
+  # cada forma de la tabla del hallazgo.
+  #
+  # bash_payload() interpola en crudo, así que un \n rompería el JSON: aquí se
+  # serializa con python.
+  json_payload() { python3 -c 'import json,sys; print(json.dumps({"tool_input":{"command":sys.argv[1]}}))' "$1"; }
+  run_git_multi() { (cd "$1" && bash "$GIT_HOOK" <<<"$(json_payload "$2")" 2>/dev/null); }
+
+  run_git_multi "$TMP/repo-develop" 'git checkout develop && git pull && git checkout -b feat/x'
+  check "multilínea: cadena && entera → permite" 0 $?
+  run_git_multi "$TMP/repo-develop" 'git checkout develop && git pull
+git checkout -b feat/x'
+  check "multilínea: pull y checkout -b en líneas distintas → permite" 0 $?
+  run_git_multi "$TMP/repo-develop" 'git checkout develop && git pull --ff-only
+git checkout -b feat/x'
+  check "multilínea: con --ff-only → permite" 0 $?
+  run_git_multi "$TMP/repo-develop" 'git checkout develop
+git pull
+git checkout -b feat/x'
+  check "multilínea: tres líneas sueltas → permite" 0 $?
+
+  # El separador nuevo no amnistía nada: lo que estaba mal en una línea lo sigue
+  # estando en varias.
+  run_git_multi "$TMP/repo-develop" 'git checkout develop
+git pull origin feat/otra'
+  check "multilínea: merge encubierto de verdad → bloquea" 2 $?
+  run_git_multi "$TMP/repo-develop" "echo hola
+git push --force origin develop"
+  check "multilínea: force-push en la segunda línea → bloquea" 2 $?
+  run_git_multi "$TMP/repo-develop" 'git status
+git commit -m "x"'
+  check "multilínea: commit en rama protegida → bloquea" 2 $?
+
+  # Una cadena entrecomillada que abarca varias líneas no se puede leer línea a
+  # línea: se cae al parseo del comando entero (el comportamiento anterior).
+  run_git_multi "$TMP/repo-develop" 'git commit -m "primera
+segunda"'
+  check "multilínea: cadena que abarca dos líneas → bloquea igual" 2 $?
+
+  # ── Heredocs: su cuerpo es CONTENIDO, no comandos ──────────────────────────
+  # Un mensaje de commit o un documento que MENCIONE un force-push no está haciendo
+  # ninguno, y el hook lo bloqueaba. Su hermano secret-guardrails ya contemplaba el
+  # caso; este no.
+  run_git_multi "$TMP/repo-develop" "cat <<EOF > nota.md
+git push --force origin develop
+EOF"
+  check "heredoc: el cuerpo no se analiza → permite" 0 $?
+  # Pero se salta el CUERPO, no el resto: no se pierde cobertura.
+  run_git_multi "$TMP/repo-develop" "cat <<EOF > nota.md
+hola
+EOF
+git push --force origin develop"
+  check "heredoc: comando real tras el delimitador → bloquea" 2 $?
 fi
 
 # ── secret-guardrails.sh ──────────────────────────────────────────────────────
@@ -74,6 +207,164 @@ if [ -f "$SECRET_HOOK" ]; then
   run_secret_hook "/proyecto/.env.example"; check "escribir .env.example → permite" 0 $?
   run_secret_hook "/proyecto/certs/server.pem"; check "escribir *.pem → bloquea" 2 $?
   run_secret_hook "/proyecto/README.md"; check "escribir README.md → permite" 0 $?
+
+  # NotebookEdit trae notebook_path, no file_path: quedaba fuera del matcher.
+  notebook_payload() { printf '{"tool_input":{"notebook_path":"%s"}}' "$1"; }
+  bash "$SECRET_HOOK" <<<"$(notebook_payload /proyecto/.env)" 2>/dev/null; check "NotebookEdit sobre .env → bloquea" 2 $?
+
+  # Vía Bash: solo bloquean los usos que LEEN o ESCRIBEN el secreto — una
+  # redirección hacia él o un comando lector/escritor conocido. Mencionar el
+  # nombre no bloquea: `echo .env >> .gitignore` es legítimo y frecuente.
+  run_secret_bash() { bash "$SECRET_HOOK" <<<"$(bash_payload "$1")" 2>/dev/null; }
+  run_secret_bash "cat .env"; check "bash: cat .env → bloquea" 2 $?
+  run_secret_bash "printf 'X=1' >> .env"; check "bash: redirección a .env → bloquea" 2 $?
+  run_secret_bash "sed -i -e s/a/b/ .env.local"; check "bash: sed -i sobre .env.local → bloquea" 2 $?
+  run_secret_bash "cp id_rsa /tmp/"; check "bash: cp id_rsa → bloquea" 2 $?
+  run_secret_bash "source .env"; check "bash: source .env → bloquea" 2 $?
+  run_secret_bash "echo .env >> .gitignore"; check "bash: añadir .env al .gitignore → permite" 0 $?
+  run_secret_bash "cat .env.example"; check "bash: cat .env.example → permite" 0 $?
+  run_secret_bash "git status"; check "bash: comando sin secretos → permite" 0 $?
+
+  # Falsos positivos que bloqueaban trabajo cotidiano (regresión de la primera
+  # versión del parser): el patrón de grep no es un archivo, un heredoc es
+  # contenido, y copiar DESDE la plantilla es el setup normal.
+  run_secret_bash "grep -n .env .gitignore"; check "bash: grep con .env como patrón → permite" 0 $?
+  run_secret_bash "grep -rn DATABASE_URL .env.example docs/"; check "bash: grep sobre .env.example → permite" 0 $?
+  run_secret_bash "cat > notas.md <<EOF"; check "bash: heredoc que menciona .env → permite" 0 $?
+
+  # shlex no separa `;`, `&` ni `|` pegados al token, así que el basename se
+  # quedaba con el separador dentro: `.env.example;` dejaba de coincidir con las
+  # plantillas exentas y caía en `.env.*`. Escribir en .env.example es legítimo, y
+  # esto lo bloqueaba en cuanto el comando seguía en la misma línea.
+  run_secret_bash "printf x > a/.env.example; ls"; check "bash: escribir .env.example con ';' pegado → permite" 0 $?
+  run_secret_bash "printf x > a/.env; ls"; check "bash: escribir .env con ';' pegado → sigue bloqueando" 2 $?
+  run_secret_bash "cat .env; ls"; check "bash: leer .env con ';' pegado → sigue bloqueando" 2 $?
+  run_secret_bash "cp .env.example .env"; check "bash: cp .env.example .env (setup) → permite" 0 $?
+  run_secret_bash "sed -e s/x/y/ .env"; check "bash: sed con .env como ARCHIVO → sigue bloqueando" 2 $?
+  run_secret_bash "cp secreto.key /tmp/"; check "bash: cp de una llave sin plantilla → sigue bloqueando" 2 $?
+fi
+
+# ── spec-guardrails.sh ────────────────────────────────────────────────────────
+SPEC_HOOK="$REPO_ROOT/.claude/hooks/spec-guardrails.sh"
+if [ -f "$SPEC_HOOK" ]; then
+  echo "spec-guardrails.sh:"
+  run_spec_hook() { bash "$SPEC_HOOK" <<<"$(write_payload "$1")" 2>/dev/null; }
+
+  # Plantilla de proposal de referencia: sus líneas con corchetes son los
+  # marcadores que el hook busca para decidir si la spec está escrita.
+  write_proposal_template() {
+    printf '# Propuesta — [NOMBRE_DEL_CAMBIO]\n\n- **Fecha**: [FECHA]\n- **Ítem de roadmap**: [Versión + ítem]\n\n## Problema\n\n[¿Qué problema aborda este cambio?]\n' >"$1"
+  }
+
+  # Repo en rama feat/login-google con carpeta specs/ pero sin la spec.
+  git -C "$TMP" init -q -b feat/login-google repo-spec
+  mkdir -p "$TMP/repo-spec/specs/_template" "$TMP/repo-spec/app" \
+    "$TMP/repo-spec/docs" "$TMP/repo-spec/design"
+  write_proposal_template "$TMP/repo-spec/specs/_template/proposal.md"
+
+  run_spec_hook "$TMP/repo-spec/app/user.rb"; check "feat sin spec, editar código → bloquea" 2 $?
+  run_spec_hook "$TMP/repo-spec/docs/guia.txt"; check "feat sin spec, editar docs/ → permite" 0 $?
+  run_spec_hook "$TMP/repo-spec/README.md"; check "feat sin spec, *.md en la raíz → permite" 0 $?
+  run_spec_hook "$TMP/repo-spec/design/tokens.md"; check "feat sin spec, *.md anidado → bloquea" 2 $?
+  run_spec_hook "$TMP/repo-spec/specs/0001-login-google/proposal.md"; check "feat sin spec, crear la spec → permite" 0 $?
+
+  # La carpeta destino aún no existe: el hook debe subir al ancestro que sí existe y
+  # juzgar ESE repo. Si cae a $PWD, su veredicto depende de la rama en la que estés
+  # parado al ejecutarlo — que es como se coló este fallo.
+  run_spec_hook "$TMP/repo-spec/app/nuevo/modulo/user.rb"; check "carpeta inexistente, código → bloquea igual" 2 $?
+  run_spec_hook "$TMP/repo-spec/docs/nueva/guia.md"; check "carpeta inexistente, docs/ → permite" 0 $?
+
+  # La carpeta existe pero está vacía: no hay contrato que leer.
+  mkdir -p "$TMP/repo-spec/specs/0001-login-google"
+  run_spec_hook "$TMP/repo-spec/app/user.rb"; check "spec sin proposal.md → bloquea" 2 $?
+
+  # proposal.md que sigue siendo la plantilla intacta.
+  write_proposal_template "$TMP/repo-spec/specs/0001-login-google/proposal.md"
+  run_spec_hook "$TMP/repo-spec/app/user.rb"; check "proposal.md sin rellenar → bloquea" 2 $?
+
+  # Relleno a medias: basta un marcador vivo para bloquear.
+  printf '# Propuesta — Login con Google\n\n- **Fecha**: 2026-01-01\n- **Ítem de roadmap**: [Versión + ítem]\n\n## Problema\n\nLa contraseña es fricción.\n' \
+    >"$TMP/repo-spec/specs/0001-login-google/proposal.md"
+  run_spec_hook "$TMP/repo-spec/app/user.rb"; check "proposal.md a medio rellenar → bloquea" 2 $?
+
+  # Escrito de verdad.
+  printf '# Propuesta — Login con Google\n\n- **Fecha**: 2026-01-01\n- **Ítem de roadmap**: v0.2 → Login social\n\n## Problema\n\nLa contraseña es fricción.\n' \
+    >"$TMP/repo-spec/specs/0001-login-google/proposal.md"
+  run_spec_hook "$TMP/repo-spec/app/user.rb"; check "feat con spec escrita → permite" 0 $?
+
+  # Plantilla larga: el listado de pendientes se recorta a 5 sin llevarse por
+  # delante el exit 2 (SIGPIPE con pipefail).
+  git -C "$TMP" init -q -b feat/larga repo-spec-larga
+  mkdir -p "$TMP/repo-spec-larga/specs/_template" "$TMP/repo-spec-larga/specs/0001-larga" \
+    "$TMP/repo-spec-larga/app"
+  for i in 1 2 3 4 5 6 7 8; do
+    printf -- '- **Campo %s**: [POR_RELLENAR_%s]\n' "$i" "$i"
+  done >"$TMP/repo-spec-larga/specs/_template/proposal.md"
+  cp "$TMP/repo-spec-larga/specs/_template/proposal.md" \
+    "$TMP/repo-spec-larga/specs/0001-larga/proposal.md"
+  run_spec_hook "$TMP/repo-spec-larga/app/a.rb"; check "proposal.md con 8 marcadores → bloquea" 2 $?
+
+  # Sin specs/_template/proposal.md no hay con qué comparar: falla abierto.
+  git -C "$TMP" init -q -b feat/sin-plantilla repo-spec-notmpl
+  mkdir -p "$TMP/repo-spec-notmpl/specs/0001-sin-plantilla" "$TMP/repo-spec-notmpl/app"
+  write_proposal_template "$TMP/repo-spec-notmpl/specs/0001-sin-plantilla/proposal.md"
+  run_spec_hook "$TMP/repo-spec-notmpl/app/a.rb"; check "repo sin plantilla de proposal → permite" 0 $?
+
+  # Rama docs/* queda fuera de la regla; sin specs/ el hook no impone nada.
+  git -C "$TMP" init -q -b docs/arranque repo-spec-docs
+  mkdir -p "$TMP/repo-spec-docs/x"
+  run_spec_hook "$TMP/repo-spec-docs/x/archivo.rb"; check "rama docs/* → permite" 0 $?
+
+  git -C "$TMP" init -q -b fix/bug repo-spec-nospecs
+  mkdir -p "$TMP/repo-spec-nospecs/lib"
+  run_spec_hook "$TMP/repo-spec-nospecs/lib/a.rb"; check "fix sin carpeta specs/ en el repo → permite" 0 $?
+
+  # .githooks/ es tooling igual que .claude/ y .github/: antes caía en la regla
+  # genérica */* y pedía spec para tocar un hook de git.
+  run_spec_hook "$TMP/repo-spec/.githooks/pre-push"; check "feat, editar .githooks/ → permite" 0 $?
+
+  # Placeholder MULTILÍNEA: rellenar la primera línea y dejar las continuaciones
+  # pasaba, porque solo las líneas con corchete contaban como marcador
+  # (regresión real de specs/_template/proposal.md:6-8).
+  git -C "$TMP" init -q -b feat/multi repo-spec-multi
+  mkdir -p "$TMP/repo-spec-multi/specs/_template" "$TMP/repo-spec-multi/specs/0001-multi" \
+    "$TMP/repo-spec-multi/app"
+  printf -- '# Propuesta — [NOMBRE]\n\n- **Ítem de roadmap**: [Versión + ítem literal que\n  esta spec completa — o escribe Ninguno y por qué.]\n' \
+    >"$TMP/repo-spec-multi/specs/_template/proposal.md"
+  printf -- '# Propuesta — Multi\n\n- **Ítem de roadmap**: v0.2 → Algo que\n  esta spec completa — o escribe Ninguno y por qué.]\n' \
+    >"$TMP/repo-spec-multi/specs/0001-multi/proposal.md"
+  run_spec_hook "$TMP/repo-spec-multi/app/a.rb"; check "continuación multilínea intacta → bloquea" 2 $?
+
+  # design.md y tasks.md también cuentan: un `| [ALTERNATIVA] | [Razón] |`
+  # sobrevivía entero sin bloquear nada. El checkbox "- [ ]" solo NO es
+  # placeholder: las casillas fijas de tasks.md sobreviven tal cual.
+  git -C "$TMP" init -q -b feat/dt repo-spec-dt
+  mkdir -p "$TMP/repo-spec-dt/specs/_template" "$TMP/repo-spec-dt/specs/0001-dt" \
+    "$TMP/repo-spec-dt/app"
+  printf -- '# Propuesta — [NOMBRE]\n' >"$TMP/repo-spec-dt/specs/_template/proposal.md"
+  printf -- '# Propuesta — DT\n' >"$TMP/repo-spec-dt/specs/0001-dt/proposal.md"
+  printf -- '# Diseño — [NOMBRE]\n\n| Alternativa | Por qué no |\n| --- | --- |\n| [ALTERNATIVA] | [Razón] |\n' \
+    >"$TMP/repo-spec-dt/specs/_template/design.md"
+  printf -- '# Tareas — [NOMBRE]\n\n- [ ] [Tarea 1]\n- [ ] Abrir PR usando la plantilla\n' \
+    >"$TMP/repo-spec-dt/specs/_template/tasks.md"
+  cp "$TMP/repo-spec-dt/specs/_template/design.md" "$TMP/repo-spec-dt/specs/0001-dt/design.md"
+  cp "$TMP/repo-spec-dt/specs/_template/tasks.md" "$TMP/repo-spec-dt/specs/0001-dt/tasks.md"
+  run_spec_hook "$TMP/repo-spec-dt/app/a.rb"; check "design.md con placeholders → bloquea" 2 $?
+  printf -- '# Diseño — DT\n\n| Alternativa | Por qué no |\n| --- | --- |\n| SQLite | sin concurrencia |\n' \
+    >"$TMP/repo-spec-dt/specs/0001-dt/design.md"
+  run_spec_hook "$TMP/repo-spec-dt/app/a.rb"; check "tasks.md con placeholders → bloquea" 2 $?
+  printf -- '# Tareas — DT\n\n- [ ] Modelo de datos\n- [ ] Abrir PR usando la plantilla\n' \
+    >"$TMP/repo-spec-dt/specs/0001-dt/tasks.md"
+  run_spec_hook "$TMP/repo-spec-dt/app/a.rb"; check "spec completa (3 archivos) → permite" 0 $?
+
+  # design.md también usa modo prosa: dejar la CONTINUACIÓN de un placeholder
+  # multilínea (rellenada solo la primera línea) debe bloquear, igual que en
+  # proposal.md. tasks.md no — su prosa instructiva sobrevive.
+  printf -- '# Diseño — [NOMBRE]\n\n[Enlaza aquí el prototipo de las vistas\ny la nota de para qué sirve.]\n' \
+    >"$TMP/repo-spec-dt/specs/_template/design.md"
+  printf -- '# Diseño — DT\n\nEl prototipo está en prototipo/index.html\ny la nota de para qué sirve.]\n' \
+    >"$TMP/repo-spec-dt/specs/0001-dt/design.md"
+  run_spec_hook "$TMP/repo-spec-dt/app/a.rb"; check "design.md con continuación multilínea → bloquea" 2 $?
 fi
 
 # ── check-placeholders.sh ─────────────────────────────────────────────────────
@@ -116,6 +407,269 @@ printf '# Mi proyecto\nVer [MIT](LICENSE).\n' >"$TMP/inst-ok/README.md"
 commit_all "$TMP/inst-ok"
 (bash "$CHECK_PLACEHOLDERS" "$TMP/inst-ok" >/dev/null); check "instancia: limpio → pasa" 0 $?
 
+# Modo instancia: placeholder MARCADO como pendiente → pasa.
+# /instanciar dice "no inventes datos, deja el placeholder"; sin esta excepción esa
+# regla y este check se contradicen y el primer PR de todo proyecto sale en rojo.
+make_repo inst-pend
+printf '# Mi proyecto\nContacto: [EMAIL_SOPORTE] <!-- pendiente: aún sin buzón -->\n' >"$TMP/inst-pend/README.md"
+commit_all "$TMP/inst-pend"
+(bash "$CHECK_PLACEHOLDERS" "$TMP/inst-pend" >/dev/null); check "instancia: marcado pendiente → pasa" 0 $?
+
+# …pero se lista, para que no se vuelva permanente por inercia.
+salida="$(bash "$CHECK_PLACEHOLDERS" "$TMP/inst-pend" 2>&1 || true)"
+printf '%s' "$salida" | grep -q "EMAIL_SOPORTE"
+check "instancia: el pendiente se reporta" 0 $?
+
+# La marca es por línea: otro placeholder sin marcar en el mismo archivo sigue fallando.
+make_repo inst-mix
+printf '# Mi proyecto\nContacto: [EMAIL_SOPORTE] <!-- pendiente -->\nCorre [COMANDO_TEST]\n' >"$TMP/inst-mix/README.md"
+commit_all "$TMP/inst-mix"
+(bash "$CHECK_PLACEHOLDERS" "$TMP/inst-mix" >/dev/null); check "instancia: marca por línea, no por archivo → falla" 1 $?
+
+# La marca también en sintaxis de comentario bash: los [COMANDO_*] viven en bloques
+# ```bash y en .env.example, donde un comentario HTML saldría literal.
+make_repo inst-bash
+printf '# Mi proyecto\n\n```bash\n[COMANDO_TEST]   # pendiente: falta el scaffolding\n```\n' >"$TMP/inst-bash/README.md"
+commit_all "$TMP/inst-bash"
+(bash "$CHECK_PLACEHOLDERS" "$TMP/inst-bash" >/dev/null); check "instancia: marca '# pendiente' en bash → pasa" 0 $?
+
+# El CHANGELOG es historia, no formulario: mencionar un placeholder no es tener uno.
+make_repo inst-chlog
+printf '# Mi proyecto\nTodo bien.\n' >"$TMP/inst-chlog/README.md"
+printf '# Changelog\n\n- Se elimina el bloque con [BASE_DE_DATOS] y [PROVEEDOR].\n' >"$TMP/inst-chlog/CHANGELOG.md"
+commit_all "$TMP/inst-chlog"
+(bash "$CHECK_PLACEHOLDERS" "$TMP/inst-chlog" >/dev/null); check "instancia: CHANGELOG no cuenta → pasa" 0 $?
+
+# La marca vale también en la línea SIGUIENTE: Prettier parte las líneas dentro de
+# los bloques ```html y deja el comentario debajo. Exigir la misma línea hacía que
+# marcar bien y commitear rompiera el check (prueba de arranque 2, fricción 7).
+make_repo inst-nextline
+printf '# Mi proyecto\n\n```html\n<meta content="[URL_IMAGEN_OG]" />\n<!-- pendiente: falta la imagen -->\n```\n' >"$TMP/inst-nextline/README.md"
+commit_all "$TMP/inst-nextline"
+(bash "$CHECK_PLACEHOLDERS" "$TMP/inst-nextline" >/dev/null); check "instancia: marca en la línea siguiente → pasa" 0 $?
+
+# Pero solo si el comentario ABRE la línea: si no, un marcador ajeno excusaría al
+# placeholder de arriba por simple vecindad.
+make_repo inst-nextline-no
+printf '# Mi proyecto\n\n[URL_DEV]\ntexto [URL_PRODUCCION] <!-- pendiente: sin dominio -->\n' >"$TMP/inst-nextline-no/README.md"
+commit_all "$TMP/inst-nextline-no"
+(bash "$CHECK_PLACEHOLDERS" "$TMP/inst-nextline-no" >/dev/null); check "instancia: marca ajena no excusa al vecino → falla" 1 $?
+
+# Un archivo que git traza pero que ya no está en disco (poda con 'rm' en vez de
+# 'git rm') no puede revisarse — y antes se saltaba en silencio, con el resumen en
+# verde y un error crudo de perl por stderr (fricción 3).
+make_repo inst-ausente
+printf '# Mi proyecto\nTodo bien.\n' >"$TMP/inst-ausente/README.md"
+printf 'Con [NOMBRE_DEL_PROYECTO].\n' >"$TMP/inst-ausente/OTRO.md"
+commit_all "$TMP/inst-ausente"
+rm "$TMP/inst-ausente/OTRO.md"
+salida="$(bash "$CHECK_PLACEHOLDERS" "$TMP/inst-ausente" 2>&1)"; ec=$?
+check "instancia: archivo trazado y ausente no rompe → pasa" 0 $ec
+# Lo que de verdad cambió: antes el exit ya era 0, pero perl escupía su error crudo
+# y el archivo no se revisaba. El exit por sí solo no distingue el arreglo.
+printf '%s' "$salida" | grep -qi "can't open"; check "instancia: sin error crudo de perl" 1 $?
+
+# Pendientes DE PROYECTO: un dato que falta en todas partes se declara una vez en
+# `.pendientes` en vez de con decenas de comentarios — que en legal/, que se publica,
+# irían dentro de los términos del producto (prueba de arranque 2, fricción 8).
+make_repo inst-globales
+printf '# Mi proyecto\n\nContacto: [EMAIL_SOPORTE]\n' >"$TMP/inst-globales/README.md"
+printf 'Escribe a [EMAIL_SOPORTE].\n' >"$TMP/inst-globales/SECURITY.md"
+printf 'EMAIL_SOPORTE=el cliente aún no da el buzón\n' >"$TMP/inst-globales/.pendientes"
+commit_all "$TMP/inst-globales"
+salida="$(bash "$CHECK_PLACEHOLDERS" "$TMP/inst-globales" 2>&1)"; ec=$?
+check "instancia: pendiente declarado en .pendientes → pasa" 0 $ec
+printf '%s' "$salida" | grep -q "Pendientes de proyecto"; check "instancia: los globales se listan aparte" 0 $?
+
+# Sin el archivo, los mismos placeholders siguen fallando: declarar es un acto explícito.
+make_repo inst-globales-no
+printf '# Mi proyecto\n\nContacto: [EMAIL_SOPORTE]\n' >"$TMP/inst-globales-no/README.md"
+commit_all "$TMP/inst-globales-no"
+(bash "$CHECK_PLACEHOLDERS" "$TMP/inst-globales-no" >/dev/null 2>&1); check "instancia: sin .pendientes → falla igual" 1 $?
+
+# Y declarar uno no tapa a su vecino en la misma línea.
+make_repo inst-globales-vecino
+printf '# Mi proyecto\n\n[EMAIL_SOPORTE] y [URL_PRODUCCION]\n' >"$TMP/inst-globales-vecino/README.md"
+printf 'EMAIL_SOPORTE=sin buzón\n' >"$TMP/inst-globales-vecino/.pendientes"
+commit_all "$TMP/inst-globales-vecino"
+(bash "$CHECK_PLACEHOLDERS" "$TMP/inst-globales-vecino" >/dev/null 2>&1); check "instancia: un global no tapa al vecino de su línea" 1 $?
+
+# Archivos que EXISTEN pero git aún no traza: es el estado exacto al adoptar la
+# plantilla en un proyecto existente — se copian y todavía no se han commiteado. Antes
+# eran invisibles y el check respondía "no queda ninguno" (prueba de adopción, fricción 3).
+make_repo inst-untracked
+printf '# Mi proyecto\nTodo bien.\n' >"$TMP/inst-untracked/README.md"
+commit_all "$TMP/inst-untracked"
+printf 'Recien copiado con [NOMBRE_DEL_PROYECTO].\n' >"$TMP/inst-untracked/NUEVO.md"
+(bash "$CHECK_PLACEHOLDERS" "$TMP/inst-untracked" >/dev/null 2>&1); check "instancia: archivo sin trazar también se revisa → falla" 1 $?
+
+# Pero lo ignorado por .gitignore sigue fuera: --exclude-standard lo respeta.
+make_repo inst-ignorado
+printf '# Mi proyecto\nTodo bien.\n' >"$TMP/inst-ignorado/README.md"
+printf 'borrador/\n' >"$TMP/inst-ignorado/.gitignore"
+commit_all "$TMP/inst-ignorado"
+mkdir -p "$TMP/inst-ignorado/borrador"
+printf 'Con [NOMBRE_DEL_PROYECTO].\n' >"$TMP/inst-ignorado/borrador/notas.md"
+(bash "$CHECK_PLACEHOLDERS" "$TMP/inst-ignorado" >/dev/null 2>&1); check "instancia: lo ignorado por .gitignore no cuenta → pasa" 0 $?
+
+# Huecos EN PROSA: no siguen la convención [MAYÚSCULAS] y por eso nadie los veía —
+# un roadmap íntegramente sin rellenar pasaba en verde (prueba del ciclo, fricción 2).
+make_repo inst-prosa
+printf '# Mi proyecto\n\n## v0.1 — [NOMBRE / OBJETIVO]\n\n[Un párrafo describiendo el norte.]\n' >"$TMP/inst-prosa/README.md"
+commit_all "$TMP/inst-prosa"
+(bash "$CHECK_PLACEHOLDERS" "$TMP/inst-prosa" >/dev/null 2>&1); check "instancia: hueco en prosa → falla" 1 $?
+
+# La misma marca de pendiente vale para ellos.
+make_repo inst-prosa-marcada
+printf '# Mi proyecto\n\n[Un párrafo describiendo el norte.] <!-- pendiente: sin cerrar la visión -->\n' >"$TMP/inst-prosa-marcada/README.md"
+commit_all "$TMP/inst-prosa-marcada"
+(bash "$CHECK_PLACEHOLDERS" "$TMP/inst-prosa-marcada" >/dev/null 2>&1); check "instancia: hueco en prosa marcado → pasa" 0 $?
+
+# Las cuatro exclusiones, una prueba cada una: si alguna falla, el check se vuelve
+# ruido que nadie mira, que es peor que no tenerlo.
+make_repo inst-prosa-falsos
+{
+  printf '# Mi proyecto\n\n'
+  printf 'Un [enlace normal](https://example.com) no es un hueco.\n\n'
+  printf -- '- [ ] una tarea pendiente\n- [x] una tarea hecha\n\n'
+  printf '> [!NOTE]\n> Una admonición de GitHub.\n\n'
+  printf 'El selector `[data-theme="dark"]` va entre acentos graves.\n\n'
+  printf 'La sección [Unreleased] del changelog es sintaxis, no un hueco.\n'
+} >"$TMP/inst-prosa-falsos/README.md"
+commit_all "$TMP/inst-prosa-falsos"
+(bash "$CHECK_PLACEHOLDERS" "$TMP/inst-prosa-falsos" >/dev/null 2>&1); check "instancia: enlaces, tareas, admoniciones, código y changelog no cuentan" 0 $?
+
+# Los bloques de código vallados no son prosa: los nodos de Mermaid usan corchetes con
+# todo derecho (A["Anfitrión"], Inicio([Entrada])) y la plantilla recomienda Mermaid en
+# architecture.md, database.md y screens.md — sin la exclusión el choque era seguro
+# en toda instancia (fricción 3 de un arranque real).
+make_repo inst-prosa-mermaid
+{
+  printf '# Arquitectura\n\n'
+  printf '```mermaid\nflowchart LR\n'
+  printf '  A["Anfitrión — Chrome/Edge<br/>React + Vite"] --> B(Worker)\n'
+  printf '  Inicio([Entrada]) --> A\n'
+  printf '```\n'
+} >"$TMP/inst-prosa-mermaid/README.md"
+commit_all "$TMP/inst-prosa-mermaid"
+(bash "$CHECK_PLACEHOLDERS" "$TMP/inst-prosa-mermaid" >/dev/null 2>&1); check "instancia: corchetes de Mermaid dentro de valla → pasa" 0 $?
+
+# Pero la valla no amnistía nada fuera de ella ni a los [MAYÚSCULAS] de dentro:
+# un hueco en prosa después del diagrama sigue fallando, y un [COMANDO_TEST] en un
+# bloque ```bash sigue siendo un valor por sustituir.
+make_repo inst-prosa-tras-valla
+{
+  printf '# Arquitectura\n\n'
+  printf '```mermaid\nflowchart LR\n  A["Anfitrión"] --> B(Worker)\n```\n\n'
+  printf '[Un párrafo describiendo el despliegue.]\n'
+} >"$TMP/inst-prosa-tras-valla/README.md"
+commit_all "$TMP/inst-prosa-tras-valla"
+(bash "$CHECK_PLACEHOLDERS" "$TMP/inst-prosa-tras-valla" >/dev/null 2>&1); check "instancia: hueco en prosa tras la valla → falla" 1 $?
+
+make_repo inst-valla-mayusculas
+printf '# Setup\n\n```bash\n[COMANDO_TEST]\n```\n' >"$TMP/inst-valla-mayusculas/README.md"
+commit_all "$TMP/inst-valla-mayusculas"
+(bash "$CHECK_PLACEHOLDERS" "$TMP/inst-valla-mayusculas" >/dev/null 2>&1); check "instancia: [MAYÚSCULAS] dentro de valla → sigue fallando" 1 $?
+
+# En modo PLANTILLA los huecos en prosa son legítimos: el esqueleto está hecho de ellos.
+make_repo tpl-prosa
+printf '# Plantilla\n\nCatálogo: nada.\n' >"$TMP/tpl-prosa/TEMPLATE-USAGE.md"
+printf '# Mi proyecto\n\n[Un párrafo describiendo el norte.]\n' >"$TMP/tpl-prosa/README.md"
+commit_all "$TMP/tpl-prosa"
+(bash "$CHECK_PLACEHOLDERS" "$TMP/tpl-prosa" >/dev/null 2>&1); check "plantilla: los huecos en prosa no se exigen" 0 $?
+
+# --marcar: adoptar el check en un proyecto existente pondría 160 huecos en rojo de
+# golpe. Los marca en una pasada, diciendo que están sin revisar.
+make_repo inst-marcar
+printf '# Mi proyecto\n\n[Un párrafo describiendo el norte.]\n\n[Otro hueco sin escribir.]\n' >"$TMP/inst-marcar/README.md"
+commit_all "$TMP/inst-marcar"
+(bash "$CHECK_PLACEHOLDERS" "$TMP/inst-marcar" >/dev/null 2>&1); check "marcar: antes de marcar, falla" 1 $?
+bash "$CHECK_PLACEHOLDERS" --marcar "$TMP/inst-marcar" >/dev/null 2>&1
+(bash "$CHECK_PLACEHOLDERS" "$TMP/inst-marcar" >/dev/null 2>&1); check "marcar: después de marcar, pasa" 0 $?
+grep -q "sin revisar" "$TMP/inst-marcar/README.md"; check "marcar: la marca dice que está sin revisar" 0 $?
+grep -c "pendiente:" "$TMP/inst-marcar/README.md" | grep -q "^2$"; check "marcar: marca cada hueco, no solo el primero" 0 $?
+
+# Los placeholders [MAYÚSCULAS] NO se marcan en bloque: son valores por sustituir, y
+# marcarlos sería esconderlos.
+make_repo inst-marcar-solo-prosa
+printf '# Mi proyecto\n\nContacto: [EMAIL_SOPORTE]\n' >"$TMP/inst-marcar-solo-prosa/README.md"
+commit_all "$TMP/inst-marcar-solo-prosa"
+bash "$CHECK_PLACEHOLDERS" --marcar "$TMP/inst-marcar-solo-prosa" >/dev/null 2>&1
+(bash "$CHECK_PLACEHOLDERS" "$TMP/inst-marcar-solo-prosa" >/dev/null 2>&1); check "marcar: no toca los placeholders [MAYÚSCULAS]" 1 $?
+
+# .github/ ya no se salta entero: el [URL_REPOSITORIO] de config.yml quedaba
+# como enlace roto para siempre en la UI de GitHub de cada instancia.
+make_repo inst-github
+mkdir -p "$TMP/inst-github/.github/ISSUE_TEMPLATE"
+printf '# Proyecto listo\n' >"$TMP/inst-github/README.md"
+printf 'contact_links:\n  - url: [URL_REPOSITORIO]/discussions\n' \
+  >"$TMP/inst-github/.github/ISSUE_TEMPLATE/config.yml"
+commit_all "$TMP/inst-github"
+(bash "$CHECK_PLACEHOLDERS" "$TMP/inst-github" >/dev/null 2>&1); check "instancia: [URL_REPOSITORIO] en config.yml → falla" 1 $?
+
+# …pero los prefijos de título ([BUG]) y los huecos de prosa de los formularios
+# de issue ([Ej. iPhone 13]) sobreviven por diseño: instancia limpia = verde.
+make_repo inst-github-ok
+mkdir -p "$TMP/inst-github-ok/.github/ISSUE_TEMPLATE"
+printf '# Proyecto listo\n' >"$TMP/inst-github-ok/README.md"
+printf -- '---\ntitle: "[BUG] "\n---\n\n- Dispositivo: [Ej. iPhone 13, Samsung Galaxy S22]\n' \
+  >"$TMP/inst-github-ok/.github/ISSUE_TEMPLATE/bug_report.md"
+commit_all "$TMP/inst-github-ok"
+(bash "$CHECK_PLACEHOLDERS" "$TMP/inst-github-ok" >/dev/null 2>&1); check "instancia: [BUG] y prosa de ISSUE_TEMPLATE → pasa" 0 $?
+# Y el resumen no los cuenta como "pendientes" (conteo falso permanente).
+salida_gh="$(bash "$CHECK_PLACEHOLDERS" "$TMP/inst-github-ok" 2>&1 || true)"
+printf '%s' "$salida_gh" | grep -q "no queda ninguno"; check "instancia: el resumen no lista [BUG] como pendiente" 0 $?
+
+# --rutas-sustituibles: el alcance de la pasada de relleno de /instanciar. La pasada
+# global corrompió los fixtures de ESTE banco y rellenó las plantillas internas de
+# specs/ y docs/, que existen para conservar sus placeholders — lo segundo se cobró
+# semanas después, cuando spec-guardrails acusó de "sin rellenar" la línea que sí lo
+# estaba. La lista ya existía (SKIP); solo faltaba que se pudiera pedir.
+make_repo rutas
+mkdir -p "$TMP/rutas/.github/scripts/tests" "$TMP/rutas/.github/workflows" \
+  "$TMP/rutas/.github/ISSUE_TEMPLATE" "$TMP/rutas/.claude/skills" \
+  "$TMP/rutas/specs/_template" "$TMP/rutas/docs/decisions" "$TMP/rutas/docs/conventions"
+printf '# [NOMBRE_DEL_PROYECTO]\n'      >"$TMP/rutas/README.md"
+printf 'url: [URL_REPOSITORIO]\n'       >"$TMP/rutas/.github/ISSUE_TEMPLATE/config.yml"
+printf '# se toca: [PUERTO]\n'          >"$TMP/rutas/.env.example"
+printf '# fixture con [FECHA]\n'        >"$TMP/rutas/.github/scripts/tests/run-tests.sh"
+printf '# comentario con [FECHA]\n'     >"$TMP/rutas/.github/workflows/release.yml"
+printf '# skill con [NOMBRE_DEL_PROYECTO]\n' >"$TMP/rutas/.claude/skills/x.md"
+printf '# ADR [NNNN] — [TÍTULO]\n'      >"$TMP/rutas/docs/decisions/0000-template.md"
+printf '# [TEMA]\n'                     >"$TMP/rutas/docs/conventions/_template.md"
+printf -- '- **Fecha**: [FECHA]\n'      >"$TMP/rutas/specs/_template/proposal.md"
+printf '## [1.0.0] - 2026-01-01\n'      >"$TMP/rutas/CHANGELOG.md"
+commit_all "$TMP/rutas"
+rutas="$(bash "$CHECK_PLACEHOLDERS" --rutas-sustituibles "$TMP/rutas")"
+
+# Lo que SÍ se sustituye. config.yml entra aunque viva en .github/: son los enlaces de
+# contacto que GitHub muestra en "New issue", y saltarlos los dejaba rotos para siempre.
+printf '%s\n' "$rutas" | grep -qx 'README.md'; check "rutas: la documentación entra" 0 $?
+printf '%s\n' "$rutas" | grep -qx '.env.example'; check "rutas: .env.example entra" 0 $?
+printf '%s\n' "$rutas" | grep -qx '.github/ISSUE_TEMPLATE/config.yml'; check "rutas: config.yml entra pese a vivir en .github/" 0 $?
+
+# Lo que NO: en un script un placeholder es fixture o texto explicativo; en una
+# plantilla interna es lo único que la hace útil.
+for exento in \
+  '.github/scripts/tests/run-tests.sh' \
+  '.github/workflows/release.yml' \
+  '.claude/skills/x.md' \
+  'docs/decisions/0000-template.md' \
+  'docs/conventions/_template.md' \
+  'specs/_template/proposal.md' \
+  'CHANGELOG.md'; do
+  printf '%s\n' "$rutas" | grep -qx "$exento"
+  check "rutas: $exento queda fuera" 1 $?
+done
+
+# La regresión que de verdad importa: sustituir por las rutas de la lista deja intacta
+# la plantilla de la spec, así que spec-guardrails sigue sabiendo qué es "sin rellenar".
+printf '%s\n' "$rutas" | tr '\n' '\0' | (cd "$TMP/rutas" && xargs -0 perl -pi -e 's/\[FECHA\]/2026-09-01/g')
+grep -q '\[FECHA\]' "$TMP/rutas/specs/_template/proposal.md"
+check "rutas: tras la pasada, specs/_template conserva sus corchetes" 0 $?
+grep -q '\[FECHA\]' "$TMP/rutas/.github/scripts/tests/run-tests.sh"
+check "rutas: tras la pasada, el fixture del banco sigue intacto" 0 $?
+
 # ── check-links.sh ────────────────────────────────────────────────────────────
 echo "check-links.sh:"
 make_repo links-ok
@@ -128,6 +682,69 @@ make_repo links-bad
 printf 'Ver [docs](docs/no-existe.md).\n' >"$TMP/links-bad/README.md"
 commit_all "$TMP/links-bad"
 (bash "$CHECK_LINKS" "$TMP/links-bad" >/dev/null); check "enlace roto → falla" 1 $?
+
+# Archivo trazado pero borrado del disco: se cuenta y se avisa, no se salta en
+# silencio dejando que perl escupa su error mientras el resumen dice que todo bien.
+# Enlaces dentro de un archivo sin trazar: mismo caso de la adopción.
+# Un documento que CITA markdown o una regex entre acentos graves no enlaza a nada.
+make_repo links-inline
+printf 'La regex `(?!\\()` y el ejemplo `[texto](destino.md)` van entre acentos graves.\n' >"$TMP/links-inline/README.md"
+commit_all "$TMP/links-inline"
+(bash "$CHECK_LINKS" "$TMP/links-inline" >/dev/null 2>&1); check "enlaces: el código en línea no cuenta como enlace" 0 $?
+
+# Y tampoco lo que va dentro de una valla de código.
+make_repo links-valla
+printf '# Doc\n\n```perl\n/\\](?!\\()/\n```\n\nVer [de verdad](README.md).\n' >"$TMP/links-valla/README.md"
+commit_all "$TMP/links-valla"
+(bash "$CHECK_LINKS" "$TMP/links-valla" >/dev/null 2>&1); check "enlaces: el código en valla no cuenta como enlace" 0 $?
+
+make_repo links-untracked
+printf 'ok\n' >"$TMP/links-untracked/README.md"
+commit_all "$TMP/links-untracked"
+printf 'Ver [guia](docs/no-existe.md).\n' >"$TMP/links-untracked/NUEVO.md"
+(bash "$CHECK_LINKS" "$TMP/links-untracked" >/dev/null 2>&1); check "enlaces: archivo sin trazar también se revisa → falla" 1 $?
+
+make_repo links-ausente
+printf 'Ver [docs](docs/guia.md).\n' >"$TMP/links-ausente/README.md"
+mkdir -p "$TMP/links-ausente/docs" && printf 'hola\n' >"$TMP/links-ausente/docs/guia.md"
+printf 'Otro archivo.\n' >"$TMP/links-ausente/OTRO.md"
+commit_all "$TMP/links-ausente"
+rm "$TMP/links-ausente/OTRO.md"
+salida="$(bash "$CHECK_LINKS" "$TMP/links-ausente" 2>&1)"; ec=$?
+check "enlaces: archivo ausente no rompe → pasa" 0 $ec
+printf '%s' "$salida" | grep -q "no se revisaron"; check "enlaces: el ausente se avisa" 0 $?
+printf '%s' "$salida" | grep -qi "can't open"; check "enlaces: sin error crudo de perl" 1 $?
+
+# ── design-md.sh ──────────────────────────────────────────────────────────────
+if [ -f "$DESIGN_MD" ]; then
+  echo "design-md.sh:"
+
+  # Se genera desde tokens.css y el check compara: si alguien edita DESIGN.md a mano,
+  # falla. Es lo que evita la segunda copia de los tokens.
+  mkdir -p "$TMP/dm-ok/design"
+  printf ':root {\n  --primary: oklch(50%% 0.1 200);\n  --sans: "Inter", sans-serif;\n}\n' >"$TMP/dm-ok/design/tokens.css"
+  (bash "$DESIGN_MD" --write "$TMP/dm-ok" >/dev/null 2>&1); check "design-md: genera desde tokens.css" 0 $?
+  (bash "$DESIGN_MD" "$TMP/dm-ok" >/dev/null 2>&1); check "design-md: recién generado → sincronizado" 0 $?
+
+  printf '\nintruso\n' >>"$TMP/dm-ok/DESIGN.md"
+  (bash "$DESIGN_MD" "$TMP/dm-ok" >/dev/null 2>&1); check "design-md: editado a mano → falla" 1 $?
+
+  # Los valores del CSS mandan: si cambian y nadie regenera, el check lo caza.
+  bash "$DESIGN_MD" --write "$TMP/dm-ok" >/dev/null 2>&1
+  printf ':root {\n  --primary: oklch(70%% 0.2 30);\n  --sans: "Inter", sans-serif;\n}\n' >"$TMP/dm-ok/design/tokens.css"
+  (bash "$DESIGN_MD" "$TMP/dm-ok" >/dev/null 2>&1); check "design-md: token cambiado sin regenerar → falla" 1 $?
+
+  # El YAML tiene que ser parseable: los valores de tipografía llevan comillas dobles.
+  bash "$DESIGN_MD" --write "$TMP/dm-ok" >/dev/null 2>&1
+  grep -q "sans: '" "$TMP/dm-ok/DESIGN.md"; check "design-md: la tipografía va en comillas simples" 0 $?
+
+  # Producto sin interfaz: no hay tokens, así que no debe haber DESIGN.md.
+  mkdir -p "$TMP/dm-sinui"
+  printf '# Sin UI\n' >"$TMP/dm-sinui/README.md"
+  (bash "$DESIGN_MD" "$TMP/dm-sinui" >/dev/null 2>&1); check "design-md: sin tokens.css → no aplica, pasa" 0 $?
+  printf 'huerfano\n' >"$TMP/dm-sinui/DESIGN.md"
+  (bash "$DESIGN_MD" "$TMP/dm-sinui" >/dev/null 2>&1); check "design-md: DESIGN.md huérfano sin tokens → falla" 1 $?
+fi
 
 # ── check-skills.sh ───────────────────────────────────────────────────────────
 if [ -f "$CHECK_SKILLS" ]; then
@@ -157,18 +774,338 @@ if [ -f "$CHECK_SKILLS" ]; then
 
   mkdir -p "$TMP/sk-none"
   (bash "$CHECK_SKILLS" "$TMP/sk-none" >/dev/null); check "repo sin capa de IA → pasa" 0 $?
+
+  # Longitud: la regla de ~150 líneas del README de skills era una aspiración
+  # sin check — instanciar la rompía por 3× sin que nada lo dijera. Ahora se
+  # verifica sin excepciones (instanciar movió lo enciclopédico a reference.md).
+  mkdir -p "$TMP/sk-larga"
+  make_skill sk-larga mi-skill "$(printf -- '---\nname: mi-skill\n%s\n---' "$DESC_OK")"
+  for i in $(seq 1 170); do echo "línea $i"; done >>"$TMP/sk-larga/.claude/skills/mi-skill/SKILL.md"
+  (bash "$CHECK_SKILLS" "$TMP/sk-larga" >/dev/null); check "skill de 170+ líneas → falla" 1 $?
+fi
+
+# ── check-changelog.sh ────────────────────────────────────────────────────────
+if [ -f "$CHECK_CHANGELOG" ]; then
+  echo "check-changelog.sh:"
+
+  # Repo con CHANGELOG publicado en main y una rama de trabajo encima.
+  changelog_repo() { # $1 = nombre
+    make_repo "$1"
+    printf '# Changelog\n\n## [Unreleased]\n\n### Added\n\n### Fixed\n\n## [0.1.0] - 2026-01-01\n\n### Added\n\n- Primera versión.\n' \
+      >"$TMP/$1/CHANGELOG.md"
+    printf 'contenido\n' >"$TMP/$1/README.md"
+    commit_all "$TMP/$1"
+    git -C "$TMP/$1" checkout -q -b feat/x
+  }
+  # Reescribe el CHANGELOG con las entradas dadas bajo Unreleased.
+  set_unreleased() { # $1 = repo, $2 = cuerpo de Unreleased
+    printf '# Changelog\n\n## [Unreleased]\n\n### Added\n\n%s\n\n## [0.1.0] - 2026-01-01\n\n### Added\n\n- Primera versión.\n' \
+      "$2" >"$TMP/$1/CHANGELOG.md"
+  }
+  run_changelog() { (bash "$CHECK_CHANGELOG" main "$TMP/$1" >/dev/null 2>&1); }
+
+  # Cambio de código sin tocar el CHANGELOG.
+  changelog_repo cl-missing
+  printf 'puts 1\n' >"$TMP/cl-missing/app.rb"
+  commit_all "$TMP/cl-missing"
+  run_changelog cl-missing; check "código sin entrada → falla" 1 $?
+
+  # Cambio de código con su entrada bajo Unreleased.
+  changelog_repo cl-ok
+  printf 'puts 1\n' >"$TMP/cl-ok/app.rb"
+  set_unreleased cl-ok '- Se puede entrar con Google.'
+  commit_all "$TMP/cl-ok"
+  run_changelog cl-ok; check "código con entrada → pasa" 0 $?
+
+  # CHANGELOG tocado pero Unreleased sigue vacía (p. ej. solo se movió un enlace).
+  changelog_repo cl-empty
+  printf 'puts 1\n' >"$TMP/cl-empty/app.rb"
+  printf '# Changelog\n\n## [Unreleased]\n\n### Added\n\n## [0.1.0] - 2026-01-01\n\n### Added\n\n- Primera versión (redactada).\n' \
+    >"$TMP/cl-empty/CHANGELOG.md"
+  commit_all "$TMP/cl-empty"
+  run_changelog cl-empty; check "CHANGELOG tocado con Unreleased vacía → falla" 1 $?
+
+  # PR que solo escribe la spec: el changelog llega con la implementación.
+  changelog_repo cl-spec
+  mkdir -p "$TMP/cl-spec/specs/0001-x"
+  printf '# Propuesta\n' >"$TMP/cl-spec/specs/0001-x/proposal.md"
+  commit_all "$TMP/cl-spec"
+  run_changelog cl-spec; check "PR solo de specs/ → pasa (exento)" 0 $?
+
+  # Excepción explícita por label.
+  changelog_repo cl-label
+  printf 'puts 1\n' >"$TMP/cl-label/app.rb"
+  commit_all "$TMP/cl-label"
+  (PR_LABELS="documentation,sin-changelog" bash "$CHECK_CHANGELOG" main "$TMP/cl-label" >/dev/null 2>&1)
+  check "label sin-changelog → pasa" 0 $?
+
+  # Corte de versión: Unreleased queda vacía a propósito.
+  changelog_repo cl-release
+  printf '# Changelog\n\n## [Unreleased]\n\n### Added\n\n## [0.2.0] - 2026-02-01\n\n### Added\n\n- Se puede entrar con Google.\n\n## [0.1.0] - 2026-01-01\n\n### Added\n\n- Primera versión.\n' \
+    >"$TMP/cl-release/CHANGELOG.md"
+  printf 'v2\n' >"$TMP/cl-release/VERSION"
+  commit_all "$TMP/cl-release"
+  run_changelog cl-release; check "corte de versión → pasa" 0 $?
+
+  # Base irresoluble: falla abierto para no bloquear el CI por un ref raro.
+  changelog_repo cl-nobase
+  printf 'puts 1\n' >"$TMP/cl-nobase/app.rb"
+  commit_all "$TMP/cl-nobase"
+  (bash "$CHECK_CHANGELOG" no-existe "$TMP/cl-nobase" >/dev/null 2>&1)
+  check "base irresoluble → permite" 0 $?
+
+  # Repo sin CHANGELOG.md: no se impone nada.
+  make_repo cl-none
+  printf 'hola\n' >"$TMP/cl-none/README.md"
+  commit_all "$TMP/cl-none"
+  git -C "$TMP/cl-none" checkout -q -b feat/x
+  printf 'puts 1\n' >"$TMP/cl-none/app.rb"
+  commit_all "$TMP/cl-none"
+  run_changelog cl-none; check "repo sin CHANGELOG.md → permite" 0 $?
+fi
+
+# ── check-release.sh ──────────────────────────────────────────────────────────
+if [ -f "$CHECK_RELEASE" ]; then
+  echo "check-release.sh:"
+
+  # $1 = nombre, $2 = contenido del CHANGELOG, $3 = tag a crear (o vacío)
+  release_repo() {
+    make_repo "$1"
+    printf '%s' "$2" >"$TMP/$1/CHANGELOG.md"
+    commit_all "$TMP/$1"
+    [ -n "${3:-}" ] && git -C "$TMP/$1" tag "$3"
+    return 0
+  }
+  CORTADA='# Changelog\n\n## [Unreleased]\n\n### Added\n\n## [0.2.0] - 2026-02-01\n\n### Added\n\n- Login con Google.\n'
+  run_release() { (bash "$CHECK_RELEASE" "$TMP/$1" >/dev/null 2>&1); }
+
+  # Versión cortada y todavía sin tag: es exactamente lo que debe publicarse.
+  release_repo rl-ok "$(printf "$CORTADA")" ""
+  run_release rl-ok; check "versión cortada sin publicar → pasa" 0 $?
+
+  # La versión de arriba ya tiene tag: este merge no publicaría nada.
+  release_repo rl-tagged "$(printf "$CORTADA")" "v0.2.0"
+  run_release rl-tagged; check "versión ya publicada → falla" 1 $?
+
+  # Nunca se cortó: solo hay Unreleased.
+  release_repo rl-nocut "$(printf '# Changelog\n\n## [Unreleased]\n\n### Added\n\n- Algo.\n')" ""
+  run_release rl-nocut; check "sin versión fechada → falla" 1 $?
+
+  # Cortada, pero quedó trabajo suelto fuera de la versión.
+  release_repo rl-leftover \
+    "$(printf '# Changelog\n\n## [Unreleased]\n\n### Added\n\n- Quedó fuera del corte.\n\n## [0.2.0] - 2026-02-01\n\n### Added\n\n- Login con Google.\n')" ""
+  run_release rl-leftover; check "Unreleased con entradas → falla" 1 $?
+
+  # Placeholder sin fecha real (plantilla recién instanciada) no cuenta como versión.
+  release_repo rl-placeholder \
+    "$(printf '# Changelog\n\n## [Unreleased]\n\n### Added\n\n## [0.1.0] - [FECHA]\n\n- Inicio.\n')" ""
+  run_release rl-placeholder; check "versión con fecha placeholder → falla" 1 $?
+
+  # Repo sin CHANGELOG.md: no se impone nada.
+  make_repo rl-none
+  printf 'hola\n' >"$TMP/rl-none/README.md"
+  commit_all "$TMP/rl-none"
+  run_release rl-none; check "repo sin CHANGELOG.md → permite" 0 $?
+fi
+
+# ── .githooks/pre-commit ──────────────────────────────────────────────────────
+# Necesita npx (Prettier). Sin Node.js se salta: el hook mismo también se salta.
+PRECOMMIT="$REPO_ROOT/.githooks/pre-commit"
+if [ -f "$PRECOMMIT" ] && command -v npx > /dev/null 2>&1; then
+  echo ".githooks/pre-commit:"
+
+  hook_repo() { # $1 = nombre; repo con el hook activado
+    mkdir -p "$TMP/$1" && git -C "$TMP/$1" init -q -b main
+    git -C "$TMP/$1" config core.hooksPath "$(dirname "$PRECOMMIT")"
+  }
+  hook_commit() { git -C "$TMP/$1" -c user.email=t@t -c user.name=t commit -qm t > /dev/null 2>&1; }
+
+  # Formatea lo que está en stage y lo re-agrega: el commit sale ya formateado.
+  hook_repo hk-fmt
+  printf '#  Hola   \n\n\n*  uno\n' >"$TMP/hk-fmt/doc.md"
+  git -C "$TMP/hk-fmt" add doc.md
+  hook_commit hk-fmt
+  [ "$(git -C "$TMP/hk-fmt" show HEAD:doc.md)" = "$(printf '# Hola\n\n- uno')" ]
+  check "formatea el .md en stage y lo re-agrega" 0 $?
+
+  # Un archivo con cambios sin agregar no se toca: meteríamos en el commit
+  # trabajo que se decidió dejar fuera.
+  hook_repo hk-partial
+  printf '# Uno\n' >"$TMP/hk-partial/otro.md"
+  git -C "$TMP/hk-partial" add otro.md
+  printf '# Uno\n\nsin  agregar\n' >"$TMP/hk-partial/otro.md"
+  hook_commit hk-partial
+  [ "$(git -C "$TMP/hk-partial" show HEAD:otro.md)" = "# Uno" ]
+  check "archivo con cambios sin agregar → no se toca" 0 $?
+
+  # El código de la aplicación es del linter del stack, no de Prettier.
+  hook_repo hk-code
+  printf 'puts    1\n' >"$TMP/hk-code/a.rb"
+  git -C "$TMP/hk-code" add a.rb
+  hook_commit hk-code
+  [ "$(git -C "$TMP/hk-code" show HEAD:a.rb)" = "puts    1" ]
+  check "código del stack → Prettier no lo toca" 0 $?
+
+  # Nombres con acentos: git los escapa por defecto y el hook los perdería.
+  hook_repo hk-acentos
+  printf '#  Documentación   \n\n\n*  uno\n' >"$TMP/hk-acentos/documentación.md"
+  git -C "$TMP/hk-acentos" add "documentación.md"
+  hook_commit hk-acentos
+  [ "$(git -C "$TMP/hk-acentos" show "HEAD:documentación.md")" = "$(printf '# Documentación\n\n- uno')" ]
+  check "nombre con acentos → también se formatea" 0 $?
+
+  # Nunca bloquea: ni con un archivo que Prettier no puede parsear.
+  hook_repo hk-bad
+  printf '{roto,,,\n' >"$TMP/hk-bad/bad.json"
+  git -C "$TMP/hk-bad" add bad.json
+  hook_commit hk-bad; check "archivo inválido → no bloquea el commit" 0 $?
+fi
+
+# ── check-design-tokens.sh ────────────────────────────────────────────────────
+CHECK_DESIGN="$REPO_ROOT/.github/scripts/check-design-tokens.sh"
+if [ -f "$CHECK_DESIGN" ]; then
+  echo "check-design-tokens.sh:"
+
+  # Repo de utilería con una vista en una carpeta de producto real.
+  design_repo() { # $1 = nombre, $2 = ruta relativa de la vista
+    mkdir -p "$TMP/$1/$(dirname "$2")"
+  }
+  run_design() { (bash "$CHECK_DESIGN" "$TMP/$1" > /dev/null 2>&1); }
+
+  design_repo dz-ok app/views/v.html
+  printf '<div class="bg-primary text-base-content">ok</div>\n' >"$TMP/dz-ok/app/views/v.html"
+  run_design dz-ok; check "vista con tokens semánticos → pasa" 0 $?
+
+  design_repo dz-paleta app/views/v.html
+  printf '<div class="bg-blue-500">x</div>\n' >"$TMP/dz-paleta/app/views/v.html"
+  run_design dz-paleta; check "utilidad de paleta cruda (Tailwind) → falla" 1 $?
+
+  # El check es agnóstico del framework: la misma regla, escrita como la escribe
+  # Sass/Bootstrap. Sin esto, un proyecto que no usa Tailwind pasaba en verde sin
+  # que se mirara una sola de sus infracciones.
+  design_repo dz-sass src/estilos.scss
+  printf '.card { background: $gray-700; }\n' >"$TMP/dz-sass/src/estilos.scss"
+  run_design dz-sass; check "variable de paleta cruda en Sass → falla" 1 $?
+
+  design_repo dz-cp src/estilos.css
+  printf '.btn { color: var(--ui-red); }\n' >"$TMP/dz-cp/src/estilos.css"
+  run_design dz-cp; check "custom property con nombre de color → falla" 1 $?
+
+  design_repo dz-cp-num src/estilos.css
+  printf '.btn { color: var(--gray-700); }\n' >"$TMP/dz-cp-num/src/estilos.css"
+  run_design dz-cp-num; check "custom property de paleta numerada → falla" 1 $?
+
+  # …y los tokens del sistema pasan, aunque `neutral` sea también un nombre de
+  # color: aquí es un ROL. Sin esta prueba, el patrón de arriba se los comía y el
+  # check fallaba contra el propio design system que verifica.
+  design_repo dz-cp-ok src/estilos.css
+  printf '.btn { color: var(--neutral); background: var(--neutral-content); }\n' >"$TMP/dz-cp-ok/src/estilos.css"
+  run_design dz-cp-ok; check "tokens semánticos del sistema → pasa" 0 $?
+
+  design_repo dz-hex app/views/v.html
+  printf '<div style="color:#ff0000">x</div>\n' >"$TMP/dz-hex/app/views/v.html"
+  run_design dz-hex; check "color hex crudo → falla" 1 $?
+
+  design_repo dz-arb app/views/v.html
+  printf '<div class="bg-[#0A7A9D]">x</div>\n' >"$TMP/dz-arb/app/views/v.html"
+  run_design dz-arb; check "valor arbitrario bg-[#…] → falla" 1 $?
+
+  # `bg-neutral` es un token semántico del sistema; `bg-neutral-500` es paleta.
+  design_repo dz-semantico app/views/v.html
+  printf '<div class="bg-neutral text-neutral-content">x</div>\n' >"$TMP/dz-semantico/app/views/v.html"
+  run_design dz-semantico; check "bg-neutral (semántico) → pasa" 0 $?
+
+  # Enlaces internos con # no son colores.
+  design_repo dz-ancla app/views/v.html
+  printf '<a href="#precios">x</a><a href="#features">y</a>\n' >"$TMP/dz-ancla/app/views/v.html"
+  run_design dz-ancla; check "anclas #… no cuentan como color → pasa" 0 $?
+
+  # Logos de terceros: llevan SUS colores de marca; se marcan con data-brand.
+  design_repo dz-marca app/views/v.html
+  printf '<svg data-brand="google" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5z"/></svg>\n' \
+    >"$TMP/dz-marca/app/views/v.html"
+  run_design dz-marca; check "logo con data-brand → pasa" 0 $?
+
+  # …pero la excepción es acotada: fuera del svg marcado, sigue fallando.
+  design_repo dz-marca-fuera app/views/v.html
+  printf '<svg data-brand="google"><path fill="#EA4335" d="M0 0z"/></svg>\n<div style="color:#ff0000">x</div>\n' \
+    >"$TMP/dz-marca-fuera/app/views/v.html"
+  run_design dz-marca-fuera; check "hex fuera de data-brand → falla igual" 1 $?
+
+  # Cubre los otros dos stacks: Jinja (templates/) y React (src/).
+  design_repo dz-jinja templates/v.j2
+  printf '<div class="bg-red-400">x</div>\n' >"$TMP/dz-jinja/templates/v.j2"
+  run_design dz-jinja; check "plantilla Jinja con paleta → falla" 1 $?
+
+  design_repo dz-react src/App.tsx
+  printf 'export default () => <div className="bg-[#123456]" />\n' >"$TMP/dz-react/src/App.tsx"
+  run_design dz-react; check "componente React con valor arbitrario → falla" 1 $?
+
+  # Sin vistas no se impone nada (repo recién instanciado o sin UI).
+  mkdir -p "$TMP/dz-none"
+  run_design dz-none; check "repo sin vistas → permite" 0 $?
+
+  # …pero lo DICE, y dice qué buscó: "nada que verificar" era indistinguible de un ✅
+  # real, y se leía como "no aplica" en vez de "no sé mirar esto".
+  salida_dz="$(bash "$CHECK_DESIGN" "$TMP/dz-none" 2>&1 || true)"
+  printf '%s' "$salida_dz" | grep -q 'Extensiones:'
+  check "repo sin vistas → dice qué extensiones buscó" 0 $?
+
+  # ── El agujero grande: el CSS y el JS no se miraban ────────────────────────
+  # El CSS es donde viven los colores crudos en CUALQUIER stack, no solo en uno sin
+  # framework: un Rails con app/assets/stylesheets/*.css tampoco se revisaba. Y un
+  # proyecto sin framework pasaba en verde sin que se abriera un solo archivo.
+  design_repo dz-css src/styles.css
+  printf '.boton { background: #0a7a9d; }\n' >"$TMP/dz-css/src/styles.css"
+  run_design dz-css; check "hex en un .css → falla" 1 $?
+
+  design_repo dz-js src/vista.js
+  printf 'export const tpl = () => `<div style="color:#ff0000">x</div>`;\n' >"$TMP/dz-js/src/vista.js"
+  run_design dz-js; check "hex en una plantilla .js → falla" 1 $?
+
+  # Y la raíz: en un proyecto sin framework la página vive en ./index.html y ninguna
+  # carpeta de DIRS la cubre.
+  mkdir -p "$TMP/dz-raiz"
+  printf '<div style="color:#ff0000">x</div>\n' >"$TMP/dz-raiz/index.html"
+  run_design dz-raiz; check "index.html en la raíz → se revisa" 1 $?
+
+  # El archivo que DEFINE los tokens es la excepción: ahí el color crudo es el
+  # contenido. Sin eximirlo, migrar design/tokens.css dentro de src/ ponía el check
+  # en rojo permanente, que es la forma más rápida de que alguien lo borre.
+  mkdir -p "$TMP/dz-tokens/src"
+  printf ':root { --color-primary: #0a7a9d; }\n' >"$TMP/dz-tokens/src/tokens.css"
+  run_design dz-tokens; check "tokens.css define los colores → exento" 0 $?
+
+  # Documentar la regla no puede infringir la regla: los comentarios no llegan al
+  # navegador. Este fue un falso positivo real — la cabecera de una hoja de estilos
+  # que deletreaba los patrones prohibidos salía como hallazgo.
+  design_repo dz-comentario src/styles.css
+  printf '/* Regla de oro: nunca #ff0000 ni rgb(0,0,0). Solo tokens. */\n.b { color: var(--color-primary); }\n' \
+    >"$TMP/dz-comentario/src/styles.css"
+  run_design dz-comentario; check "hex dentro de un comentario CSS → no cuenta" 0 $?
+
+  design_repo dz-comentario-js src/vista.js
+  printf '// no uses #ff0000\nexport const c = "var(--color-primary)";\n' \
+    >"$TMP/dz-comentario-js/src/vista.js"
+  run_design dz-comentario-js; check "hex dentro de un comentario JS → no cuenta" 0 $?
+
+  # Pero la exclusión de `//` no puede comerse el resto de la línea tras una URL:
+  # sin el lookbehind, `https://` blanqueaba el hex que venía después.
+  design_repo dz-url src/vista.js
+  printf 'const doc = "https://example.com"; const c = "#ff0000";\n' >"$TMP/dz-url/src/vista.js"
+  run_design dz-url; check "https:// no blanquea el resto de la línea → falla" 1 $?
 fi
 
 # ── check-inheritance.sh ─────────────────────────────────────────────────────────
-CHECK_INHERITANCE="$REPO_ROOT/.github/scripts/check-inheritance.sh"
-if [ -f "$CHECK_INHERITANCE" ]; then
+CHECK_HERENCIA="$REPO_ROOT/.github/scripts/check-inheritance.sh"
+if [ -f "$CHECK_HERENCIA" ]; then
   echo "check-inheritance.sh:"
 
   instancia() { # $1 = nombre, $2 = fecha de instanciación
     mkdir -p "$TMP/$1/docs/decisions"
     printf 'repo=https://github.com/x/y\ncommit=abc\nfecha=%s\n' "$2" >"$TMP/$1/.template-origin"
   }
-  run_herencia() { (bash "$CHECK_INHERITANCE" "$TMP/$1" > /dev/null 2>&1); }
+  run_herencia() { (bash "$CHECK_HERENCIA" "$TMP/$1" > /dev/null 2>&1); }
 
   # Sin .template-origin no es una instancia: la plantilla misma no se toca.
   mkdir -p "$TMP/hr-plantilla"
@@ -200,20 +1137,400 @@ if [ -f "$CHECK_INHERITANCE" ]; then
 
   # Archivos exclusivos del repo-plantilla.
   instancia hr-parity 2026-08-07
-  mkdir -p "$TMP/hr-parity/.github/scripts"
-  printf '#!/bin/bash\n' >"$TMP/hr-parity/.github/scripts/check-parity.sh"
-  run_herencia hr-parity; check "check-parity.sh sobrante → falla" 1 $?
+  printf '# guía\n' >"$TMP/hr-parity/TEMPLATE-USAGE.md"
+  run_herencia hr-parity; check "TEMPLATE-USAGE.md sobrante → falla" 1 $?
+
+  instancia hr-instanciar 2026-08-07
+  mkdir -p "$TMP/hr-instanciar/.claude/skills/instanciar"
+  run_herencia hr-instanciar; check "skill /instanciar sobrante → falla" 1 $?
 
   # Fecha ilegible: falla abierto, no traba el flujo.
   mkdir -p "$TMP/hr-fecha"
   printf 'repo=x\nfecha=ayer\n' >"$TMP/hr-fecha/.template-origin"
   run_herencia hr-fecha; check "fecha inválida → permite" 0 $?
+
+  # Mismo día: la plantilla publica y el proyecto instancia en la misma fecha.
+  # Con `<` estricto esto pasaba y la herencia se colaba — bug real: las tres
+  # versiones de la plantilla y una instanciación compartían el 2026-08-10.
+  instancia hr-mismodia 2026-08-07
+  printf '# Changelog\n\n## [Unreleased]\n\n## [0.2.1] - 2026-08-07\n\n- De la plantilla.\n' \
+    >"$TMP/hr-mismodia/CHANGELOG.md"
+  run_herencia hr-mismodia; check "CHANGELOG con versión del mismo día → falla" 1 $?
+
+  # Con `versiones=` el criterio es exacto: una versión de la lista es herencia…
+  mkdir -p "$TMP/hr-vers/docs/decisions"
+  printf 'repo=x\ncommit=abc\nfecha=2026-08-07\nversiones=0.2.1,0.2.0,0.1.0\n' \
+    >"$TMP/hr-vers/.template-origin"
+  printf '# Changelog\n\n## [Unreleased]\n\n## [0.2.1] - 2026-08-07\n\n- De la plantilla.\n' \
+    >"$TMP/hr-vers/CHANGELOG.md"
+  run_herencia hr-vers; check "versiones=: versión de la plantilla → falla" 1 $?
+
+  # …y un release PROPIO cortado el mismo día de instanciar NO se acusa.
+  mkdir -p "$TMP/hr-vers-ok/docs/decisions"
+  printf 'repo=x\ncommit=abc\nfecha=2026-08-07\nversiones=0.2.1,0.2.0\n' \
+    >"$TMP/hr-vers-ok/.template-origin"
+  printf '# Changelog\n\n## [Unreleased]\n\n## [0.1.0] - 2026-08-07\n\n- Primer release propio.\n' \
+    >"$TMP/hr-vers-ok/CHANGELOG.md"
+  run_herencia hr-vers-ok; check "versiones=: release propio del mismo día → pasa" 0 $?
+
+  # …incluso cuando el número COINCIDE con una versión de la plantilla, que es el caso
+  # normal y no el raro: toda plantilla tuvo una 0.1.0 y todo proyecto nuevo corta la
+  # suya. Sin la exención, ningún arranque podía cortar su primera versión.
+  mkdir -p "$TMP/hr-vers-primera/docs/decisions"
+  printf 'repo=x\ncommit=abc\nfecha=2026-08-07\nversiones=0.4.0,0.3.0,0.2.0,0.1.0\n' \
+    >"$TMP/hr-vers-primera/.template-origin"
+  printf '# Changelog\n\n## [Unreleased]\n\n## [0.1.0] - 2026-08-07\n\n- Arranque propio.\n' \
+    >"$TMP/hr-vers-primera/CHANGELOG.md"
+  run_herencia hr-vers-primera
+  check "versiones=: primera propia con número de la plantilla → pasa" 0 $?
+
+  # Pero la exención NO tapa un reseteo olvidado: ahí lo que queda arriba es la versión
+  # MÁS NUEVA de la plantilla, y las suyas siguen debajo.
+  mkdir -p "$TMP/hr-vers-olvido/docs/decisions"
+  printf 'repo=x\ncommit=abc\nfecha=2026-08-07\nversiones=0.4.0,0.3.0\n' \
+    >"$TMP/hr-vers-olvido/.template-origin"
+  printf '# Changelog\n\n## [Unreleased]\n\n## [0.4.0] - 2026-08-07\n\n- De la plantilla.\n\n## [0.3.0] - 2026-08-01\n\n- De la plantilla.\n' \
+    >"$TMP/hr-vers-olvido/CHANGELOG.md"
+  run_herencia hr-vers-olvido
+  check "versiones=: reseteo olvidado (la más nueva arriba) → falla" 1 $?
+
+  # El ADR de instanciación PROPIO (el 0002) se fecha el mismo día de
+  # instanciar: aquí el `<` estricto es deliberado — con `<=` todo proyecto
+  # sano saldría en rojo. (Asimetría documentada en el propio script.)
+  instancia hr-adr-mismodia 2026-08-07
+  printf '# 0002. Instanciación\n\n- **Fecha**: 2026-08-07\n' \
+    >"$TMP/hr-adr-mismodia/docs/decisions/0002-instanciacion.md"
+  run_herencia hr-adr-mismodia; check "ADR propio del mismo día → pasa" 0 $?
+
+  # La fecha se extrae por patrón: texto tras la fecha no rompe la comparación
+  # ("## [1.0.0] - 2026-08-08 (beta)" es POSTERIOR a la instanciación → pasa).
+  instancia hr-sufijo 2026-08-07
+  printf '# Changelog\n\n## [Unreleased]\n\n## [1.0.0] - 2026-08-08 (beta)\n\n- Propio.\n' \
+    >"$TMP/hr-sufijo/CHANGELOG.md"
+  run_herencia hr-sufijo; check "fecha con sufijo, posterior → pasa" 0 $?
+
+  # ── --version-publicable ───────────────────────────────────────────────────
+  # La guarda que impide publicar la release DE LA PLANTILLA. Pasó de verdad:
+  # /instanciar crea main en el Paso 0 apuntando al commit inicial (CHANGELOG
+  # heredado) y el push de main dispara release.yml, que publicó un v1.0.0 con
+  # las notas del repo origen. Y lo caro venía después: el día que el proyecto
+  # llegue a su propia v1.0.0, release.yml diría "ya tiene tag" y se saltaría
+  # esa release en silencio.
+  run_publicable() { (bash "$CHECK_HERENCIA" --version-publicable "$TMP/$1" >/dev/null 2>&1); }
+
+  # El caso exacto del hallazgo: reseteo olvidado, la versión más nueva de la
+  # plantilla arriba, fechada el día de instanciar.
+  run_publicable hr-vers-olvido; check "publicable: reseteo olvidado → NO publica" 1 $?
+
+  # Y el que no debe romperse nunca: la primera versión propia, mismo día,
+  # con un número que la plantilla también tuvo.
+  run_publicable hr-vers-primera; check "publicable: primera versión propia → publica" 0 $?
+  run_publicable hr-vers-ok; check "publicable: release propio del mismo día → publica" 0 $?
+
+  # La plantilla misma (sin .template-origin) publica lo suyo.
+  run_publicable hr-plantilla; check "publicable: sin .template-origin → publica" 0 $?
+
+  # Lo que de verdad cierra el fallo con retardo: cuando el proyecto llega a su
+  # propia versión con el mismo número que la de la plantilla, PERO más tarde,
+  # se publica. Si esto fallara, la guarda habría cambiado un fallo por otro.
+  mkdir -p "$TMP/hr-pub-propia/docs/decisions"
+  printf 'repo=x\ncommit=abc\nfecha=2026-08-07\nversiones=1.0.0,0.5.0\n' \
+    >"$TMP/hr-pub-propia/.template-origin"
+  printf '# Changelog\n\n## [Unreleased]\n\n## [1.0.0] - 2027-03-01\n\n- La v1 de verdad.\n' \
+    >"$TMP/hr-pub-propia/CHANGELOG.md"
+  run_publicable hr-pub-propia; check "publicable: v1.0.0 propia un año después → publica" 0 $?
+
+  # Sin versiones= (instancias viejas) el criterio es el estricto: solo se
+  # rechaza lo fechado ANTES de instalar. En la duda se publica, porque aquí el
+  # falso positivo no es ruido: impide cortar la release.
+  instancia hr-pub-vieja 2026-08-07
+  printf '# Changelog\n\n## [Unreleased]\n\n## [0.9.0] - 2026-08-01\n\n- De la plantilla.\n' \
+    >"$TMP/hr-pub-vieja/CHANGELOG.md"
+  run_publicable hr-pub-vieja; check "publicable: sin versiones=, fecha anterior → NO publica" 1 $?
+
+  instancia hr-pub-vieja-mismodia 2026-08-07
+  printf '# Changelog\n\n## [Unreleased]\n\n## [0.1.0] - 2026-08-07\n\n- Propia.\n' \
+    >"$TMP/hr-pub-vieja-mismodia/CHANGELOG.md"
+  run_publicable hr-pub-vieja-mismodia; check "publicable: sin versiones=, mismo día → publica" 0 $?
+
+  # Un CHANGELOG sin versión fechada no bloquea: de eso ya se ocupa release.yml.
+  mkdir -p "$TMP/hr-pub-sinver"
+  printf 'repo=x\nfecha=2026-08-07\n' >"$TMP/hr-pub-sinver/.template-origin"
+  printf '# Changelog\n\n## [Unreleased]\n\n- Nada cortado.\n' >"$TMP/hr-pub-sinver/CHANGELOG.md"
+  run_publicable hr-pub-sinver; check "publicable: sin versión fechada → no opina" 0 $?
+fi
+
+# ── check-project-tests.sh ────────────────────────────────────────────────────
+CHECK_PROJECT_TESTS="$REPO_ROOT/.github/scripts/check-project-tests.sh"
+if [ -f "$CHECK_PROJECT_TESTS" ]; then
+  echo "check-project-tests.sh:"
+  agents_md() { # $1 = dir, $2 = comando de pruebas (vacío = sin declarar)
+    mkdir -p "$TMP/$1"
+    {
+      echo '# AGENTS'
+      echo '```bash'
+      [ -n "$2" ] && echo "$2   # ejecutar la suite de pruebas"
+      echo '```'
+    } >"$TMP/$1/AGENTS.md"
+  }
+
+  mkdir -p "$TMP/pt-sin"
+  (bash "$CHECK_PROJECT_TESTS" "$TMP/pt-sin" >/dev/null); check "sin AGENTS.md → pasa avisando" 0 $?
+  agents_md pt-hueco '[COMANDO_TEST]'
+  (bash "$CHECK_PROJECT_TESTS" "$TMP/pt-hueco" >/dev/null); check "comando sin rellenar → pasa avisando" 0 $?
+  agents_md pt-verde 'python3 -c "raise SystemExit(0)"'
+  (bash "$CHECK_PROJECT_TESTS" "$TMP/pt-verde" >/dev/null 2>&1); check "suite en verde → pasa" 0 $?
+  agents_md pt-rojo 'python3 -c "raise SystemExit(1)"'
+  (bash "$CHECK_PROJECT_TESTS" "$TMP/pt-rojo" >/dev/null 2>&1); check "suite en rojo → falla" 1 $?
+
+  # Allowlist: el comando viene de AGENTS.md y en CI corre sobre PRs de
+  # terceros — uno fuera de la lista NO se ejecuta (aquí: crear un directorio).
+  agents_md pt-raro 'mkdir dir-peligroso'
+  (bash "$CHECK_PROJECT_TESTS" "$TMP/pt-raro" >/dev/null 2>&1); rc=$?
+  [ "$rc" -eq 0 ] && [ ! -d "$TMP/pt-raro/dir-peligroso" ]
+  check "comando fuera de la allowlist → no se ejecuta" 0 $?
+
+  # Prefijos VAR=valor no cambian la clasificación (RAILS_ENV=test bin/rails
+  # test es un comando de test normal) — antes caían en "no reconocido" y el
+  # ✅ volvía a no probar nada.
+  agents_md pt-env 'CI=1 python3 -c "raise SystemExit(1)"'
+  (bash "$CHECK_PROJECT_TESTS" "$TMP/pt-env" >/dev/null 2>&1); check "prefijo VAR=valor: la suite corre (y falla) → falla" 1 $?
+
+  # Un comando COMPUESTO no se clasifica por su prefijo: `npm test && <lo que
+  # sea>` pasaba la allowlist entera hacia el eval.
+  agents_md pt-compuesto 'python3 -c pass && mkdir dir-encadenado'
+  (bash "$CHECK_PROJECT_TESTS" "$TMP/pt-compuesto" >/dev/null 2>&1); rc=$?
+  [ "$rc" -eq 0 ] && [ ! -d "$TMP/pt-compuesto/dir-encadenado" ]
+  check "comando compuesto → no se ejecuta" 0 $?
+
+  # Entre el PR de documentación y el del andamiaje, AGENTS.md ya declara el comando
+  # del stack elegido pero el proyecto no existe. Un gestor sin su manifiesto no es
+  # una suite en rojo: no hay suite todavía.
+  agents_md pt-sin-manifiesto 'pnpm test'
+  (bash "$CHECK_PROJECT_TESTS" "$TMP/pt-sin-manifiesto" >/dev/null 2>&1)
+  check "gestor sin manifiesto → pasa avisando" 0 $?
+  # Pero con manifiesto sí corre: el atajo no puede tapar una suite real en rojo.
+  agents_md pt-con-manifiesto 'npm test'
+  echo '{"scripts":{"test":"exit 1"}}' >"$TMP/pt-con-manifiesto/package.json"
+  (bash "$CHECK_PROJECT_TESTS" "$TMP/pt-con-manifiesto" >/dev/null 2>&1)
+  check "gestor con manifiesto y suite en rojo → falla" 1 $?
+fi
+
+# ── check-instructions.sh ────────────────────────────────────────────────────
+# La poda deja el README mandando ejecutar lo que ya no existe, y NINGÚN check lo
+# reclamaba: `cp .env.example .env` no es un placeholder, es texto hardcodeado. Se
+# lee como una instrucción correcta hasta que alguien la ejecuta.
+if [ -f "$CHECK_INSTRUCCIONES" ]; then
+  echo "check-instructions.sh:"
+  instr() { mkdir -p "$TMP/$1"; }
+  run_instr() { (bash "$CHECK_INSTRUCCIONES" "$TMP/$1" >/dev/null 2>&1); }
+
+  # El caso del hallazgo: .env.example conservado a propósito pero SIN variables
+  # —solo su explicación de por qué está vacío— y el README mandando copiarlo.
+  instr in-vacio
+  printf '# Variables de entorno\n# Ninguna: sin servidor, sin build, la clave vive en el navegador.\n' \
+    >"$TMP/in-vacio/.env.example"
+  printf '# P\n\n```bash\ngit clone x\ncp .env.example .env\n```\n' >"$TMP/in-vacio/README.md"
+  run_instr in-vacio; check "instrucciones: .env.example sin variables + cp → falla" 1 $?
+
+  # Con variables de verdad, el mismo README es correcto.
+  instr in-vars
+  printf 'APP_ENV=development\nPORT=3000\n' >"$TMP/in-vars/.env.example"
+  printf '# P\n\n```bash\ncp .env.example .env\n```\n' >"$TMP/in-vars/README.md"
+  run_instr in-vars; check "instrucciones: con variables → pasa" 0 $?
+
+  # Los comentarios no son variables: un archivo lleno de `# FOO=bar` sigue vacío.
+  instr in-comentado
+  printf '# Ejemplo de lo que habrá algún día:\n#   DATABASE_URL=postgres://…\n' \
+    >"$TMP/in-comentado/.env.example"
+  printf '# P\n\n```bash\ncp .env.example .env\n```\n' >"$TMP/in-comentado/README.md"
+  run_instr in-comentado; check "instrucciones: variables solo comentadas → falla" 1 $?
+
+  # Sin la línea del README no hay nada que reprochar, aunque el archivo esté vacío:
+  # conservar .env.example vacío CON su explicación es lo que manda /instanciar.
+  instr in-podado
+  printf '# Ninguna variable todavía.\n' >"$TMP/in-podado/.env.example"
+  printf '# P\n\n```bash\ngit clone x\n```\n' >"$TMP/in-podado/README.md"
+  run_instr in-podado; check "instrucciones: .env.example vacío pero README limpio → pasa" 0 $?
+
+  # [COMANDO_MIGRACIONES] en un producto sin base de datos ni variables.
+  instr in-migra
+  printf '# Ninguna variable.\n' >"$TMP/in-migra/.env.example"
+  printf '# P\n\n```bash\n[COMANDO_MIGRACIONES]\n```\n' >"$TMP/in-migra/README.md"
+  run_instr in-migra; check "instrucciones: migraciones sin base de datos → falla" 1 $?
+
+  # …pero con carpeta de migraciones el paso es legítimo.
+  instr in-migra-ok
+  mkdir -p "$TMP/in-migra-ok/db/migrate"
+  printf '# Ninguna variable.\n' >"$TMP/in-migra-ok/.env.example"
+  printf '# P\n\n```bash\n[COMANDO_MIGRACIONES]\n```\n' >"$TMP/in-migra-ok/README.md"
+  run_instr in-migra-ok; check "instrucciones: migraciones con db/migrate → pasa" 0 $?
+
+  # En modo PLANTILLA no impone nada: el README es todavía el esqueleto por podar,
+  # y su .env.example trae los seis bloques.
+  instr in-plantilla
+  printf 'guía\n' >"$TMP/in-plantilla/TEMPLATE-USAGE.md"
+  printf '# Ninguna variable.\n' >"$TMP/in-plantilla/.env.example"
+  printf '# P\n\n```bash\ncp .env.example .env\n```\n' >"$TMP/in-plantilla/README.md"
+  run_instr in-plantilla; check "instrucciones: modo plantilla → no opina" 0 $?
+
+  # Sin README no hay nada que verificar.
+  instr in-sin-readme
+  run_instr in-sin-readme; check "instrucciones: sin README → permite" 0 $?
+fi
+
+# ── check-hooks-enabled.sh ────────────────────────────────────────────────────
+# core.hooksPath no viaja en el repositorio: el estado por DEFECTO de todo clon es
+# «sin verificación local». Y cuando GitHub no ofrece protección de ramas —repos
+# privados de plan gratuito— esos hooks son la única defensa que queda.
+if [ -f "$CHECK_HOOKS" ]; then
+  echo "check-hooks-enabled.sh:"
+  hooks_repo() { # $1 = nombre; repo con .githooks/ ejecutables
+    mkdir -p "$TMP/$1/.githooks" && git -C "$TMP/$1" init -q -b main
+    printf '#!/bin/sh\nexit 0\n' >"$TMP/$1/.githooks/pre-push"
+    chmod +x "$TMP/$1/.githooks/pre-push"
+  }
+  run_hooks() { (bash "$CHECK_HOOKS" "$TMP/$1" >/dev/null 2>&1); }
+
+  hooks_repo hk-sin
+  run_hooks hk-sin; check "hooks: clon nuevo sin core.hooksPath → falla" 1 $?
+
+  hooks_repo hk-con
+  git -C "$TMP/hk-con" config core.hooksPath .githooks
+  run_hooks hk-con; check "hooks: core.hooksPath puesto → pasa" 0 $?
+
+  # Apuntar bien no basta: si no son ejecutables, git los ignora en silencio.
+  hooks_repo hk-noexec
+  git -C "$TMP/hk-noexec" config core.hooksPath .githooks
+  chmod -x "$TMP/hk-noexec/.githooks/pre-push"
+  run_hooks hk-noexec; check "hooks: apunta bien pero sin permiso de ejecución → falla" 1 $?
+
+  # --arreglar los activa, y deja el repo pasando.
+  hooks_repo hk-fix
+  (bash "$CHECK_HOOKS" --arreglar "$TMP/hk-fix" >/dev/null 2>&1)
+  check "hooks: --arreglar sale con 0" 0 $?
+  run_hooks hk-fix; check "hooks: tras --arreglar, pasa" 0 $?
+  [ "$(git -C "$TMP/hk-fix" config --get core.hooksPath)" = ".githooks" ]
+  check "hooks: --arreglar deja core.hooksPath = .githooks" 0 $?
+
+  # …y también repara el permiso, que es el otro modo de fallar en silencio.
+  hooks_repo hk-fix-exec
+  git -C "$TMP/hk-fix-exec" config core.hooksPath .githooks
+  chmod -x "$TMP/hk-fix-exec/.githooks/pre-push"
+  (bash "$CHECK_HOOKS" --arreglar "$TMP/hk-fix-exec" >/dev/null 2>&1)
+  run_hooks hk-fix-exec; check "hooks: --arreglar repara el permiso" 0 $?
+
+  # Un proyecto que borró .githooks/ no tiene nada que activar.
+  mkdir -p "$TMP/hk-sin-carpeta" && git -C "$TMP/hk-sin-carpeta" init -q -b main
+  run_hooks hk-sin-carpeta; check "hooks: sin carpeta .githooks → no opina" 0 $?
+
+  # Fuera de un repo git tampoco opina.
+  mkdir -p "$TMP/hk-no-git/.githooks"
+  run_hooks hk-no-git; check "hooks: fuera de un repo git → no opina" 0 $?
+fi
+
+# ── check-skills.sh: el modelo de cada subagente se DECLARA ──────────────────
+# La mitad del roster omitía el campo `model`, así que heredaba el de la sesión sin
+# que nadie lo hubiera decidido. `inherit` sigue valiendo; el silencio, no.
+if [ -f "$CHECK_SKILLS" ]; then
+  echo "check-skills.sh · modelo de subagentes:"
+  agente() { # $1 = repo, $2 = línea de model (o vacío para omitirla)
+    mkdir -p "$TMP/$1/.claude/agents"
+    {
+      printf -- '---\nname: a\n'
+      printf -- 'description: Un subagente de prueba con una descripción suficientemente larga.\n'
+      [ -n "${2:-}" ] && printf -- 'model: %s\n' "$2"
+      printf -- '---\n\nCuerpo.\n'
+    } >"$TMP/$1/.claude/agents/a.md"
+  }
+  run_sk() { (bash "$CHECK_SKILLS" "$TMP/$1" >/dev/null 2>&1); }
+
+  agente sk-opus opus
+  run_sk sk-opus; check "modelo: 'opus' → válido" 0 $?
+  agente sk-sonnet sonnet
+  run_sk sk-sonnet; check "modelo: 'sonnet' → válido" 0 $?
+  agente sk-inherit inherit
+  run_sk sk-inherit; check "modelo: 'inherit' sigue siendo una elección válida" 0 $?
+  agente sk-sin ""
+  run_sk sk-sin; check "modelo: sin declarar → falla" 1 $?
+  agente sk-malo gpt-4
+  run_sk sk-malo; check "modelo: valor inventado → falla" 1 $?
+
+  # La lista blanca nació incompleta: el frontmatter admite también `fable` y los
+  # IDs completos `claude-*`, y un validador que rechaza valores válidos es peor
+  # que no tenerlo — enseña a desactivarlo.
+  agente sk-fable fable
+  run_sk sk-fable; check "modelo: 'fable' → válido" 0 $?
+  agente sk-id claude-opus-5
+  run_sk sk-id; check "modelo: ID completo claude-* → válido" 0 $?
+
+  # `effort` es el otro eje del frontmatter. Opcional (omitirlo = high), pero si
+  # se declara tiene que ser uno de los cinco.
+  efuerzo() { # $1 = repo, $2 = valor de effort
+    mkdir -p "$TMP/$1/.claude/agents"
+    {
+      printf -- '---\nname: a\n'
+      printf -- 'description: Un subagente de prueba con una descripción suficientemente larga.\n'
+      printf -- 'model: opus\n'
+      [ -n "${2:-}" ] && printf -- 'effort: %s\n' "$2"
+      printf -- '---\n\nCuerpo.\n'
+    } >"$TMP/$1/.claude/agents/a.md"
+  }
+  efuerzo sk-eff-max max
+  run_sk sk-eff-max; check "effort: 'max' → válido" 0 $?
+  efuerzo sk-eff-sin ""
+  run_sk sk-eff-sin; check "effort: omitido → válido (equivale a high)" 0 $?
+  efuerzo sk-eff-malo turbo
+  run_sk sk-eff-malo; check "effort: valor inventado → falla" 1 $?
+fi
+
+# ── La versión de Prettier vive en UN solo sitio ──────────────────────────────
+# Va fija (no `prettier@3`) porque un formateador que cambia de minor cambia su
+# salida: el mismo archivo pasa en una máquina y falla en el CI. Y va en un solo
+# sitio porque dos versiones del mismo formateador en el mismo repo se pelean —
+# pre-commit formatearía de una forma y el check del CI exigiría otra.
+echo "versión de Prettier:"
+FMT="$REPO_ROOT/.github/scripts/format.sh"
+PRECOMMIT="$REPO_ROOT/.githooks/pre-commit"
+if [ -f "$FMT" ]; then
+  v_fmt="$(sed -n 's/^PRETTIER="\(.*\)"$/\1/p' "$FMT")"
+  printf '%s' "$v_fmt" | grep -Eq '^prettier@[0-9]+\.[0-9]+\.[0-9]+$'
+  check "format.sh fija una versión exacta de Prettier" 0 $?
+
+  # Nadie INVOCA una versión literal: los dos scripts pasan la variable. Se busca
+  # `npx … prettier@…` y no el string a secas, porque el respaldo de pre-commit
+  # (`PRETTIER="prettier@3"`, que solo actúa si no puede leer format.sh) es una
+  # asignación deliberada, no una invocación.
+  sueltas="$(grep -rn 'npx.*prettier@' "$FMT" "$PRECOMMIT" 2>/dev/null || true)"
+  [ -z "$sueltas" ]
+  check "ningún script invoca una versión literal de Prettier" 0 $?
+fi
+if [ -f "$PRECOMMIT" ]; then
+  # pre-commit no repite el número: lo lee de format.sh.
+  grep -q 'sed -n .*PRETTIER=.*format\.sh' "$PRECOMMIT"
+  check "pre-commit lee la versión de format.sh, no la repite" 0 $?
+  # Y de hecho la lee bien: el valor que extrae es el que format.sh declara.
+  v_pre="$(cd "$REPO_ROOT" && sed -n 's/^PRETTIER="\(.*\)"$/\1/p' .github/scripts/format.sh)"
+  [ "$v_pre" = "$v_fmt" ]
+  check "la versión que lee pre-commit coincide con la de format.sh" 0 $?
+fi
+
+# ── LABELS.md como fuente única de setup-labels.sh ────────────────────────────
+SETUP_LABELS="$REPO_ROOT/.github/scripts/setup-labels.sh"
+LABELS_MD_REAL="$REPO_ROOT/.github/LABELS.md"
+if [ -f "$SETUP_LABELS" ] && [ -f "$LABELS_MD_REAL" ]; then
+  echo "setup-labels.sh:"
+  filas="$(grep -cE '^\| *`[^`]+` *\| *`#[0-9A-Fa-f]{6}` *\|' "$LABELS_MD_REAL" || true)"
+  [ "$filas" -ge 10 ]; check "LABELS.md tiene filas parseables ($filas)" 0 $?
+  # Ni un label hardcodeado en el script: eran dos copias y ya habían divergido
+  # ("Cambios en documentación" vs "Cambios solo de documentación").
+  ! grep -qE 'create_label "[a-z]' "$SETUP_LABELS"; check "setup-labels.sh sin labels hardcodeados" 0 $?
 fi
 
 # ── Estructura de .github/workflows/ ──────────────────────────────────────────
 # GitHub ejecuta CUALQUIER .yml/.yaml de esa carpeta, sin mirar el resto del
-# nombre: un `ci.example.yml` se ejecuta de verdad y sale en verde sin probar
-# nada. Lo que no deba ejecutarse no puede terminar en .yml/.yaml.
+# nombre: `ci.example.yml` se ejecutaba de verdad (workflow "CI" en verde sin
+# probar nada). Lo que no deba ejecutarse no puede terminar en .yml/.yaml.
 WORKFLOWS="$REPO_ROOT/.github/workflows"
 if [ -d "$WORKFLOWS" ]; then
   echo "estructura de .github/workflows:"

@@ -3,8 +3,6 @@ name: seo-audit
 description: Audita los metadatos SEO de una página o ruta (title, description, canonical, Open Graph, robots) frente a las convenciones de SEO del proyecto y enumera lo que falta o está mal. Úsalo cuando la persona pida revisar/auditar el SEO, revisar las meta tags o verificar que una página esté lista para buscadores (p. ej. "audita el SEO de la página de precios", "revisa las meta tags de esta ruta").
 ---
 
-<!-- Skill de ejemplo de la plantilla — adáptalo o elimínalo según tu proyecto. -->
-
 Audita los metadatos SEO de la página/ruta que indique la persona.
 
 1. Lee `docs/conventions/seo.md` para conocer las tags requeridas del proyecto, los formatos de valor (p. ej. longitud del title, longitud de la description), las reglas por tipo de página y qué páginas deben indexarse frente a `noindex`.
