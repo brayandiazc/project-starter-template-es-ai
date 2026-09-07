@@ -3,9 +3,10 @@ name: accessibility-audit
 description: Revisa los cambios de UI en cuanto a accesibilidad — contraste de color, navegación por teclado, gestión del foco, uso de ARIA y texto alternativo. Úsalo cuando la persona pida una revisión de a11y/accesibilidad, verificar el cumplimiento de WCAG, el soporte de teclado, la compatibilidad con lectores de pantalla o el manejo del foco (p. ej. "¿es accesible este modal?", "audita la a11y del formulario").
 ---
 
-<!-- Skill de ejemplo de la plantilla — adáptalo o elimínalo según tu proyecto. -->
-
-Audita la UI indicada en cuanto a accesibilidad. Esto complementa el skill design-system-audit (que cubre la línea base del sistema de diseño); este skill profundiza más en la a11y.
+Audita la UI indicada en cuanto a accesibilidad. Reparto con `design-system-audit`:
+aquella cubre tokens, primitivas, estados de datos y jerarquía; **todo lo de
+contraste, teclado, foco y ARIA vive aquí**, en una sola lista — si la otra skill te
+remitió un componente custom, esta es la lista que le aplica.
 
 1. Si `docs/conventions/` contiene guías de accesibilidad o de sistema de diseño, léelas para conocer el estándar objetivo del proyecto (p. ej. WCAG 2.1 AA) y cualquier regla específica.
 2. Localiza el código fuente de la UI dentro del alcance y revísalo frente a estas comprobaciones:

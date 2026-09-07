@@ -4,8 +4,6 @@ description: Genera un nuevo Registro de Decisión de Arquitectura (ADR) copiand
 argument-hint: "[título breve]"
 ---
 
-<!-- Skill de ejemplo de la plantilla — adáptalo o elimínalo según tu proyecto. -->
-
 Crea un nuevo ADR para la decisión cuyo título está en `$ARGUMENTS`.
 
 1. Lee `docs/decisions/README.md` para conocer el esquema de numeración, la convención de nombres de archivo y cómo se mantiene el índice. Sigue ese documento si difiere de los pasos siguientes.

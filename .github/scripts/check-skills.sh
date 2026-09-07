@@ -49,6 +49,12 @@ if [ -d .claude/skills ]; then
       || err "skills/$slug: el nombre no está en kebab-case"
     [ -n "$desc" ] || err "skills/$slug: description vacía o ausente"
     [ "${#desc}" -ge 40 ] || err "skills/$slug: description demasiado corta — debe decir cuándo invocarla"
+    # Longitud: una skill debe caber en ~150 líneas (.claude/skills/README.md) —
+    # el cuerpo se carga entero en el contexto cada vez que la skill se activa.
+    # Sin excepciones: hasta `instanciar` cupo, moviendo lo enciclopédico a un
+    # reference.md que se lee en el paso que lo cita.
+    lineas="$(wc -l <"$file" | tr -d ' ')"
+    [ "$lineas" -le 160 ] || err "skills/$slug: SKILL.md tiene $lineas líneas (límite ~150 — parte lo enciclopédico a un reference.md, ver .claude/skills/README.md)"
   done
 fi
 
@@ -60,8 +66,32 @@ if [ -d .claude/agents ]; then
     [ "$base" = "README" ] && continue
     name="$(front "$file" name)"
     desc="$(front "$file" description)"
+    modelo="$(front "$file" model)"
     [ "$name" = "$base" ] || err "agents/$base: name '$name' no coincide con el archivo"
     [ -n "$desc" ] || err "agents/$base: description vacía o ausente"
+    esfuerzo="$(front "$file" effort)"
+    # El modelo se DECLARA, siempre. Sin el campo, el subagente hereda el de la
+    # sesión — que es una elección legítima, pero tiene que ser una elección: la
+    # mitad del roster lo omitía y nadie lo veía, así que todos corrían con el
+    # modelo caro sin que nadie lo hubiera decidido. `inherit` sigue valiendo;
+    # lo que deja de valer es el silencio.
+    #
+    # Se aceptan los alias cortos, `inherit` y los IDs completos `claude-*`. Ojo
+    # con la diferencia, que importa: **los alias se mueven**. `opus` apunta a la
+    # versión recomendada del momento y cambia cuando Anthropic la actualiza; un
+    # ID completo la fija. Para un subagente casi siempre quieres el alias.
+    case "$modelo" in
+      opus | sonnet | haiku | fable | inherit) : ;;
+      claude-*) : ;;
+      "") err "agents/$base: falta 'model' en el frontmatter — decláralo (opus, sonnet, haiku, fable, inherit o un ID claude-*)" ;;
+      *) err "agents/$base: model '$modelo' no es válido (opus, sonnet, haiku, fable, inherit o un ID claude-*)" ;;
+    esac
+    # `effort` es opcional: omitirlo equivale a `high`. Solo se declara cuando se
+    # desvía de ese default, para que declararlo signifique algo.
+    case "$esfuerzo" in
+      "" | low | medium | high | xhigh | max) : ;;
+      *) err "agents/$base: effort '$esfuerzo' no es válido (low, medium, high, xhigh o max)" ;;
+    esac
   done
 fi
 

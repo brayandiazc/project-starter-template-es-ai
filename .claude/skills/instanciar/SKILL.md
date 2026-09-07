@@ -44,11 +44,15 @@ inferir. En proyectos existentes, pre-rellena las respuestas leyendo el código.
   comandos (instalar / dev / test / lint). En existente: LÉELO del código, no preguntes.
 - **Lote D · Capacidades:** ¿API? ¿autenticación? ¿i18n? ¿SEO/web pública? ¿emails
   transaccionales? ¿sistema de diseño/UI? (Cada "no" implica borrar su convención.)
-- **Lote E · Permisos y guardrails:** ¿dejar el `ask:[Bash]` conservador de
-  `.claude/settings.json`, o crear `.claude/settings.local.json` con una allowlist de
-  solo-lectura? ¿Activar los **guardrails de git** (hook opt-in que bloquea commits/push
-  a `main`/`develop` y force-push)? ¿Y los **guardrails de secretos** (hook opt-in que
-  bloquea escrituras del agente sobre `.env` reales y llaves privadas)?
+- **Lote E · Permisos:** ¿dejar el `ask:[Bash]` conservador de `.claude/settings.json`,
+  o crear `.claude/settings.local.json` con una allowlist de solo-lectura?
+
+  Los **tres guardrails** (git, secretos y specs) vienen **activos**: solo se tocan si
+  la persona lo pide expresamente, y entonces queda escrito en el ADR del Paso 6.
+
+  Activa además los git hooks del clon, que no viajan en el repositorio:
+  `bash .github/scripts/check-hooks-enabled.sh --arreglar`. Sin eso, `pre-commit` no
+  formatea y `pre-push` no verifica: los fallos se descubren en el CI.
 
 ## Paso 3 — Rellenar / fusionar según contexto
 
@@ -92,14 +96,14 @@ está en `docs/conventions/ai-agents.md`. Requieren `python3`.
 
 Borra los docs/convenciones que no apliquen:
 
-- Móvil / Escritorio → borra `docs/conventions/seo.md`; reenfoca `views-and-layouts`,
-  `api`, `deploy`.
-- API / Librería → borra docs de UI (`seo`, `views-and-layouts`, `design-system`,
-  `branding`).
+- Móvil / Escritorio → borra `docs/conventions/seo.md`; reenfoca `ui`, `api`, `deploy`.
+- API / Librería → borra los docs de UI (`conventions/seo.md`, `conventions/ui.md`,
+  `architecture/pantallas.md`) y la carpeta `design/` con `DESIGN.md`.
 - Cada capacidad respondida "no" en el Lote D → borra su convención (p. ej. sin i18n →
   `docs/conventions/i18n.md`) **y su skill asociada**: sin i18n → `i18n-parity`; sin
   base de datos → `migration-guard`; sin SEO/web pública → `seo-audit`; sin UI (API o
-  librería) → `design-system-audit`, `accessibility-audit` y `copywriting`.
+  librería) → `design-system-audit`, `accessibility-audit`, `copywriting`, `identidad`,
+  `prototipo` y el subagente `designer`.
 - **Siempre** borra los archivos exclusivos del repo-plantilla: el workflow
   `.github/workflows/template-parity.yml`, el script `.github/scripts/check-parity.sh`
   y la skill `.claude/skills/portar-cambio/` — solo sirven para mantener la familia de
@@ -121,4 +125,12 @@ Ejemplo: `/instanciar` → entrevista → repo con documentación real y `docs/`
 
 NO instancies sobre el repo-fuente del template (Paso 0), NO sobrescribas el código de
 producción en proyectos existentes, NO hagas commit ni push por tu cuenta, y NO inventes
-datos: si no puedes inferir un valor y la persona no lo da, deja el placeholder y márcalo.
+datos: si no puedes inferir un valor y la persona no lo da, deja el placeholder y
+**márcalo como pendiente en su línea** —`[EMAIL_SEGURIDAD] <!-- pendiente: aún sin
+buzón -->`, o con `#` dentro de un bloque de código—. `check-placeholders.sh` distingue
+lo que decidiste dejar de lo que se te olvidó; sin la marca, falla.
+
+Y no dejes el CHANGELOG ni los ADRs de la plantilla: son de otro repositorio. Resetea el
+CHANGELOG conservando su `## [Unreleased]` (sin una entrada, `check-changelog.sh`
+bloquea el primer PR) y borra todo ADR salvo el `0001`. Lo verifica
+`check-inheritance.sh`.
