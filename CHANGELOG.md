@@ -11,6 +11,28 @@ plantilla, no su vida (ver `TEMPLATE-USAGE.md`).
 
 ## [Unreleased]
 
+### Fixed
+
+- **Dependabot no podía pasar el gate del CHANGELOG.** El job `changelog` exige entrada a
+  todo PR que toque el proyecto; el bot toca el manifiesto y el lockfile, no escribe
+  changelogs y no puede aprenderlo. Sus PRs morían con el build y los escaneos en verde.
+  La excepción ya estaba diseñada —la label `sin-changelog`—, solo que nada se la ponía:
+  ahora nacen con ella.
+- **La vía de escape solo servía puesta antes de abrir el PR.** `PR_LABELS` sale del
+  payload del evento, así que poner `sin-changelog` a mano no disparaba nada y un re-run
+  replicaba el payload viejo, sin la label — justo al revés de cuando descubres que la
+  necesitas. `quality.yml` escucha ahora `labeled` y `unlabeled`. Cuesta un run por cada
+  cambio de label; una salida de emergencia inutilizable en la emergencia cuesta más.
+
+### Changed
+
+- **Los PRs de Dependabot van agrupados**, uno con todos los bumps en vez de uno por
+  paquete. Fusionar N bumps sueltos en cadena deja un lockfile que nadie compiló: git no
+  marca conflicto —cada bump toca un sitio distinto del archivo— y el CI tampoco lo ve,
+  porque cada PR se construye sobre su propia rama y nunca sobre el resultado de
+  fusionarlos todos. El precio, escrito al lado en `dependabot.yml`: si un bump del grupo
+  rompe, se bloquea el grupo entero.
+
 ## [2.1.0] - 2026-09-07
 
 ### Added
