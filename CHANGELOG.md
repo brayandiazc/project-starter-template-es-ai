@@ -5,7 +5,13 @@ Todos los cambios notables de este proyecto se documentan en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/)
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+Este es el CHANGELOG del repo-plantilla [brayandiazc/project-starter-template-es-ai](https://github.com/brayandiazc/project-starter-template-es-ai).
+Al instanciar se resetea: tu proyecto hereda las herramientas de la
+plantilla, no su vida (ver `TEMPLATE-USAGE.md`).
+
 ## [Unreleased]
+
+## [2.0.0] - 2026-09-07
 
 ### Added
 
@@ -97,14 +103,13 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   verde sin que se mire una sola de sus infracciones. Y no se traga los tokens del
   propio sistema: `--neutral` es un rol, no un color.
 
-## [0.1.0] - [FECHA]
+## v1.4.0 y anteriores
 
-### Added
-
-- Versión inicial.
+El historial hasta la `v1.4.0` vive en las [notas de release](https://github.com/brayandiazc/project-starter-template-es-ai/releases)
+del repositorio. No se reconstruye aquí: inventarlo sería peor que no tenerlo.
 
 <!--
-Enlaces de comparación entre versiones (ajusta a tu repositorio):
-[Unreleased]: [URL_REPOSITORIO]/compare/v0.1.0...HEAD
-[0.1.0]: [URL_REPOSITORIO]/releases/tag/v0.1.0
+Enlaces de comparación entre versiones:
+[Unreleased]: https://github.com/brayandiazc/project-starter-template-es-ai/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/brayandiazc/project-starter-template-es-ai/compare/v1.4.0...v2.0.0
 -->
