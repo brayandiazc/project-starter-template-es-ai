@@ -11,6 +11,8 @@ plantilla, no su vida (ver `TEMPLATE-USAGE.md`).
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-09-07
+
 ### Added
 
 - **`check-labels.sh` — que las labels de `LABELS.md` existan de verdad en el
@@ -178,7 +180,8 @@ del repositorio. No se reconstruye aquí: inventarlo sería peor que no tenerlo.
 
 <!--
 Enlaces de comparación entre versiones:
-[Unreleased]: https://github.com/brayandiazc/project-starter-template-es-ai/compare/v2.2.0...HEAD
+[Unreleased]: https://github.com/brayandiazc/project-starter-template-es-ai/compare/v2.3.0...HEAD
+[2.3.0]: https://github.com/brayandiazc/project-starter-template-es-ai/compare/v2.2.0...v2.3.0
 [2.2.0]: https://github.com/brayandiazc/project-starter-template-es-ai/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/brayandiazc/project-starter-template-es-ai/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/brayandiazc/project-starter-template-es-ai/compare/v1.4.0...v2.0.0
