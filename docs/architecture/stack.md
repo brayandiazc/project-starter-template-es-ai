@@ -94,5 +94,6 @@ Respondidas antes de escribir código:
 - **Entidad central del producto**: — _(se diseña en papel antes que nada)_
 - **¿Qué crece sin límite?**: — _ese es el costo recurrente_
 - **¿Hay costo de infraestructura por usuario?**: — _si sí, va al precio desde el día uno_
-- **¿Hay pantalla con interactividad continua?**: — _si sí, React solo ahí (§4.1)_
-- **¿Necesita algo que la web no da?**: — _si sí, Expo; si no, PWA (§4.2)_
+- **¿Hay pantalla con interactividad continua?**: — _si sí, ahí es donde un framework
+  de cliente se gana su sitio_
+- **¿Necesita algo que la web no da?**: — _si sí, nativo; si no, PWA_
