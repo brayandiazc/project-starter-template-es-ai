@@ -20,7 +20,10 @@ SIBLING="${1:?uso: check-parity.sh <ruta-al-repo-hermano>}"
 normalize() {
   sed -e 's|skills/instanciar/|skills/instantiate/|' \
       -e 's|skills/portar-cambio/|skills/port-change/|' \
-      -e 's|skills/actualizar-plantilla/|skills/update-template/|'
+      -e 's|skills/actualizar-plantilla/|skills/update-template/|' \
+      -e 's|skills/identidad/|skills/identity/|' \
+      -e 's|skills/prototipo/|skills/prototype/|' \
+      -e 's|skills/configurar-repo/|skills/configure-repo/|'
 }
 
 mine="$(git ls-files | normalize | sort)"

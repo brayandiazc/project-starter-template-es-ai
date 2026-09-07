@@ -541,7 +541,7 @@ commit_all "$TMP/inst-prosa-falsos"
 
 # Los bloques de código vallados no son prosa: los nodos de Mermaid usan corchetes con
 # todo derecho (A["Anfitrión"], Inicio([Entrada])) y la plantilla recomienda Mermaid en
-# architecture.md, database.md y pantallas.md — sin la exclusión el choque era seguro
+# architecture.md, database.md y screens.md — sin la exclusión el choque era seguro
 # en toda instancia (fricción 3 de un arranque real).
 make_repo inst-prosa-mermaid
 {

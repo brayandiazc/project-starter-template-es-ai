@@ -27,7 +27,7 @@ en `docs/` — este archivo es su único índice; léelo antes de un trabajo no 
 | Modelo de datos                            | [`docs/architecture/database.md`](docs/architecture/database.md)         |
 | Autenticación y permisos                   | [`docs/architecture/auth.md`](docs/architecture/auth.md)                 |
 | Contrato de la API                         | [`docs/architecture/api.md`](docs/architecture/api.md)                   |
-| Qué pantallas hay y por dónde va cada una  | [`docs/architecture/pantallas.md`](docs/architecture/pantallas.md)       |
+| Qué pantallas hay y por dónde va cada una  | [`docs/architecture/screens.md`](docs/architecture/screens.md)           |
 | Cómo escribimos código                     | [`docs/conventions/`](docs/conventions/README.md)                        |
 | Por qué se tomaron las decisiones          | [`docs/decisions/`](docs/decisions/README.md)                            |
 | Identidad visual y tokens                  | [`design/`](design/README.md)                                            |

@@ -9,7 +9,7 @@ lógica, y luego se conectan (no se tiran).
 ## Paso 1 — Contexto
 
 Lee `design/README.md` + `design/tokens.css` (sistema y tokens), el mapa de vistas en
-`docs/architecture/pantallas.md` y el `README.md` del proyecto.
+`docs/architecture/screens.md` y el `README.md` del proyecto.
 Si no hay mapa de pantallas, constrúyelo primero con la persona. Al terminar, marca en
 ese mapa las vistas que pasen a estado **prototipo**.
 

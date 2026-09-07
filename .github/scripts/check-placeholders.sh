@@ -101,7 +101,7 @@ extract() {
 #   ```…```           bloques de código       → lo de dentro es código citado, no prosa
 # Lo último no es un detalle: la sintaxis normal de Mermaid usa corchetes para sus
 # nodos —`A["Anfitrión"]`, `Inicio([Entrada])`— y la plantilla recomienda diagramas
-# Mermaid en architecture.md, database.md y pantallas.md, así que sin esta exclusión
+# Mermaid en architecture.md, database.md y screens.md, así que sin esta exclusión
 # el choque era seguro en toda instancia y empujaba a deformar los diagramas (nodos
 # redondeados solo para contentar al check). Los placeholders [MAYÚSCULAS] NO quedan
 # eximidos: extract_sin_pendientes() sigue mirando dentro de las vallas, porque un
