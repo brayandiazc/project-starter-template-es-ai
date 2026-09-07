@@ -60,10 +60,15 @@ skill los excluye por diseño y `/instanciar` cree que el proyecto es virgen.
 
 ### Y revisa los renombrados
 
-Antes de proponer nada, lee [`RENOMBRADOS.md` de la plantilla](https://github.com/brayandiazc/project-starter-template-es-ai/blob/main/RENOMBRADOS.md).
-Si el proyecto tiene alguno de los nombres antiguos, traer el nuevo **deja los dos**, con
-contenido distinto y sin que ningún check lo note. Propón la migración par por par:
-mover el contenido y borrar el viejo, nunca dejar ambos.
+**Es el fallo silencioso de esta skill**, así que va antes de proponer nada: un documento
+que la plantilla renombró o fusionó no se sustituye, **se duplica**. Quedan los dos —el
+tuyo con contenido y el nuevo vacío—, los dos son markdown válido, los enlaces resuelven
+y ningún check chista.
+
+Busca en el `CHANGELOG.md` de la plantilla, entre tu versión y la actual, las entradas de
+`### Changed` y `### Removed` que mencionen rutas de archivo. Contrástalas con lo que
+tiene el proyecto y propón la migración par por par: mover el contenido y borrar el
+viejo, **nunca dejar ambos**.
 
 ### Checks que se volvieron más estrictos
 
@@ -93,8 +98,7 @@ Ese commit va **antes** del que trae el check, y su mensaje debe decir que son h
 instanciado antes de que llegaran:
 
 - `check-inheritance.sh`: tu `.template-origin` no tiene `versiones=` — añádela con las
-  versiones que la plantilla tenía cuando instanciaste (están en su CHANGELOG). Y si
-  conservas `RENOMBRADOS.md`, bórralo: ahora cuenta como archivo sobrante.
+  versiones que la plantilla tenía cuando instanciaste (están en su CHANGELOG).
 - `check-placeholders.sh`: ya revisa `.github/` (salvo scripts/workflows) — el
   `[URL_REPOSITORIO]` de `ISSUE_TEMPLATE/config.yml` va a salir; rellénalo.
 - `spec-guardrails.sh`: exige también `design.md` y `tasks.md` sin líneas de plantilla

@@ -70,9 +70,10 @@ sabes cuáles son en vez de descubrirlo cuando ya se perdieron.
 
 **Después**:
 
-- **Revisa [`RENOMBRADOS.md`](RENOMBRADOS.md)**: si adoptaste una versión anterior, algunos
-  documentos tuyos ahora se llaman de otra forma. Sin esa tabla te quedan los dos, con
-  contenido distinto y ningún check que lo note.
+- **Compara los nombres de archivo contra el `CHANGELOG.md` de la plantilla**: si
+  adoptaste una versión anterior, algún documento tuyo puede llamarse ahora de otra
+  forma. Traer el nuevo sin borrar el viejo **deja los dos**, con contenido distinto y
+  sin que ningún check lo note.
 - Añade `.claude/settings.local.json` a tu `.gitignore`.
 - Activa los git hooks: `git config core.hooksPath .githooks`.
 - Escribe `.template-origin` (repo, commit, fecha y `versiones=` con las versiones
@@ -235,9 +236,9 @@ tabla no cubre:
 - Los workflows de ejemplo en `.github/workflows/` si no usas GitHub Actions. Los
   workflows **activos** (`quality.yml`, `secret-scan.yml`) funcionan en cualquier stack —
   consérvalos si usas GitHub Actions.
-- **Siempre** borra lo exclusivo del repo-plantilla: este mismo archivo,
-  `RENOMBRADOS.md` y la skill `/actualizar-plantilla` si no vas a sincronizar mejoras
-  (la skill `/instanciar` se encarga).
+- **Siempre** borra lo exclusivo del repo-plantilla: este mismo archivo, y la skill
+  `/actualizar-plantilla` si no vas a sincronizar mejoras (la skill `/instanciar` se
+  encarga).
 
 ## 5. Mantener la documentación viva
 

@@ -1202,11 +1202,6 @@ if [ -f "$CHECK_HERENCIA" ]; then
     >"$TMP/hr-adr-mismodia/docs/decisions/0002-instanciacion.md"
   run_herencia hr-adr-mismodia; check "ADR propio del mismo día → pasa" 0 $?
 
-  # RENOMBRADOS.md es del repo-plantilla: en una instancia cuenta como sobrante.
-  instancia hr-renombrados 2026-08-07
-  printf '# tabla\n' >"$TMP/hr-renombrados/RENOMBRADOS.md"
-  run_herencia hr-renombrados; check "RENOMBRADOS.md sobrante → falla" 1 $?
-
   # La fecha se extrae por patrón: texto tras la fecha no rompe la comparación
   # ("## [1.0.0] - 2026-08-08 (beta)" es POSTERIOR a la instanciación → pasa).
   instancia hr-sufijo 2026-08-07

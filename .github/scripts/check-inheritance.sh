@@ -196,7 +196,6 @@ fi
 declare -a sobrantes=()
 for ruta in \
   "TEMPLATE-USAGE.md" \
-  "RENOMBRADOS.md" \
   ".claude/skills/instanciar"; do
   [ -e "$ruta" ] && sobrantes+=("$ruta")
 done

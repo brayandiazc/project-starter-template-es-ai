@@ -27,17 +27,31 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   En local son gratis; en Actions, minutos.
 - **`docs/conventions/workflow.md`** — el ciclo de trabajo completo, de la spec al
   release. No dice qué construir ni con qué: eso es del proyecto.
-- **`RENOMBRADOS.md`**: qué documento cambió de nombre y qué hacer con tu contenido. Al
-  adoptar una versión nueva sobre un proyecto que ya tenía otra, los renombrados no se
-  sustituyen: **se duplican**, y ningún check lo detecta.
 
 ### Changed
 
 - **`architecture/` responde qué construye el proyecto; `conventions/`, cómo se
-  trabaja.** Los pares que se rellenaban y podaban siempre juntos se fusionaron:
-  `design-system.md` + `branding.md` + `views-and-layouts.md` → `conventions/ui.md`, y
-  `conventions/authentication.md` → `architecture/auth.md`. El mapa está en
-  `RENOMBRADOS.md`.
+  trabaja.** Los pares que se rellenaban y podaban siempre juntos se fusionaron.
+
+  **Si actualizas un proyecto que ya usaba una versión anterior, esta tabla es lo que
+  hay que aplicar a mano.** Un documento renombrado no se sustituye: **se duplica**.
+  Quedan los dos —el tuyo con contenido y el nuevo vacío—, los dos son markdown válido,
+  los enlaces resuelven y ningún check lo detecta.
+
+  | Antes                                   | Ahora                            | Qué hacer con tu contenido                                                                                                                             |
+  | --------------------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+  | `docs/architecture/design.md`           | `docs/architecture/pantallas.md` | Migrar el mapa de pantallas y borrar el viejo. `design.md` queda reservado para el diseño **técnico** de cada spec (`specs/*/design.md`)               |
+  | `docs/conventions/design-system.md`     | `docs/conventions/ui.md`         | Fusionar: `ui.md` reúne design system, marca y layouts                                                                                                 |
+  | `docs/conventions/branding.md`          | `docs/conventions/ui.md`         | Ídem                                                                                                                                                   |
+  | `docs/conventions/views-and-layouts.md` | `docs/conventions/ui.md`         | Ídem                                                                                                                                                   |
+  | `docs/conventions/authentication.md`    | `docs/architecture/auth.md`      | Mover las reglas transversales a la sección «Reglas» de `auth.md` y borrar el viejo. El par se rellenaba y podaba junto — era la misma tabla dos veces |
+  | `docs/README.md`                        | `AGENTS.md`                      | Era una segunda copia del mapa de documentación, y las dos divergían                                                                                   |
+  | `docs/glossary.md`                      | —                                | Eliminado (huérfano). Si el tuyo tiene contenido, muévelo a `docs/product/business-model.md`                                                           |
+  | `.claude/skills/refactor/`              | —                                | Eliminada: duplicaba el builtin `/simplify`. Si tu copia tiene reglas propias, muévelas a `docs/conventions/`                                          |
+  | `.claude/agents/explorer.md`            | —                                | Eliminado: duplicaba el agente `Explore` de fábrica                                                                                                    |
+  | `.claude/agents/code-reviewer.md`       | —                                | Eliminado: duplicaba la skill `/code-review` de fábrica                                                                                                |
+  | `.github/labeler.yml`                   | —                                | Eliminado: configuración huérfana; ningún workflow la leía                                                                                             |
+
 - **`docs/architecture/stack.md` es la única fuente del stack**, con el porqué de cada
   elección en `docs/decisions/`. Las convenciones dejan de apuntar a ningún catálogo:
   esta plantilla **documenta las decisiones de quien la use, no propone stacks**.
