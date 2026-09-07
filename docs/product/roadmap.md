@@ -20,9 +20,13 @@
 
 ## Por versión / fase
 
+Cada ítem se marca cuando la spec que lo implementa se fusiona — no antes. Anota
+entre paréntesis la spec responsable en cuanto exista, para que el ítem y su
+contrato queden atados:
+
 ### v0.1 — [NOMBRE / OBJETIVO]
 
-- [ ] [Objetivo o entregable].
+- [ ] [Objetivo o entregable]. (`specs/NNNN-<slug>/`)
 - [ ] [Objetivo o entregable].
 
 ### v0.2 — [NOMBRE / OBJETIVO]
@@ -39,9 +43,26 @@
 
 ## Fuera de alcance
 
-- [Lo que explícitamente NO se hará y por qué].
+La lista canónica es la tabla «Fuera de v1» de
+[`product-definition.md`](product-definition.md) — única copia; aquí solo se anota lo
+que quedó fuera **de una versión concreta** al recortarla, con enlace a esa tabla.
+
+**El porqué no vive aquí.** Lo que se descartó con evidencia —y sobre todo **qué lo
+reabriría**— va a [`discovery.md`](discovery.md) → «Lo que decidimos NO construir». Sin
+esa condición de reapertura, un ítem fuera de alcance se re-discute cada trimestre desde
+cero.
 
 ## Cómo se actualiza este documento
 
-- Revisar al cerrar cada versión/fase.
+Este archivo **no se revisa solo al cerrar una versión**: se mueve con cada spec.
+
+- **Al abrir una spec**: su `proposal.md` declara el campo _Ítem de roadmap_ —
+  la versión y el ítem que viene a completar. Si el ítem no existe, se crea aquí
+  primero (y si no encaja en ninguna versión, pasa antes por
+  [`product-definition.md`](product-definition.md): ¿entra en la v1?, ¿qué sale a cambio?).
+- **Al cerrar la spec**: el mismo PR que implementa el cambio marca el ítem como
+  hecho aquí y actualiza el `CHANGELOG.md`. Los tres viajan juntos — ver
+  [`../conventions/workflow.md`](../conventions/workflow.md).
+- **Al cerrar la versión**: se revisa el conjunto (qué quedó 📋, qué se difiere ⏸️)
+  antes de cortar el release con `/release`.
 - Las decisiones que cambian el rumbo se registran como ADRs en [`../decisions/`](../decisions/README.md).

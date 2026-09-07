@@ -18,6 +18,13 @@
 - **API**: [Endpoints añadidos/modificados → `../../docs/architecture/api.md`.]
 - **Otros**: [Autenticación, UI, jobs, etc.]
 
+## Prototipo (si la spec toca UI)
+
+[Enlaza aquí el prototipo HTML estático de las vistas involucradas (skill
+`/prototipo`), construido con el design system de `design/`. Si el destino es móvil,
+la maqueta sirve de spec de contenido y jerarquía, pero NO de layout ni navegación
+(tabs en vez de sidebar, y pantallas que solo existen en móvil).]
+
 ## Decisiones
 
 [Lista las decisiones duraderas tomadas aquí. Promueve las significativas a un ADR en

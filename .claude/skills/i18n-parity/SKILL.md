@@ -3,8 +3,6 @@ name: i18n-parity
 description: Verifica la paridad de internacionalización — que cada clave de traducción exista en todos los idiomas y que no haya cadenas visibles para la persona usuaria codificadas de forma fija — siguiendo las convenciones de i18n del proyecto. Úsalo cuando la persona pida revisar las traducciones, verificar la paridad entre idiomas, encontrar cadenas faltantes/codificadas o auditar la i18n (p. ej. "revisa la i18n", "¿están todos los idiomas sincronizados?").
 ---
 
-<!-- Skill de ejemplo de la plantilla — adáptalo o elimínalo según tu proyecto. -->
-
 Verifica la paridad entre idiomas y detecta cadenas visibles para la persona usuaria codificadas de forma fija.
 
 1. Lee `docs/conventions/i18n.md` para conocer el formato de los archivos de idioma, dónde viven los archivos de traducción, el idioma por defecto/de referencia y la regla sobre qué debe traducirse.

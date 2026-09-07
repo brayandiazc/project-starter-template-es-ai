@@ -6,11 +6,13 @@ Esta guía explica cómo convertir esta plantilla en la documentación real de t
 
 - **Es** una base de documentación lista para iniciar cualquier proyecto: estructura de carpetas, archivos de gobernanza y esqueletos de documentos con placeholders.
 - **No es** un boilerplate de código ni está atado a un stack concreto. No incluye dependencias ni configuración de un lenguaje específico — eso lo aporta tu proyecto.
-- Esta es la variante **lista para IA**: sobre la base de documentación añade instrucciones para agentes, subagentes/skills reutilizables y un flujo ligero de especificaciones. Mira §9. Si no quieres tooling de IA, usa la variante sin IA (también en §9).
+- Trae además la **capa de IA**: instrucciones para agentes, subagentes y skills, guardrails deterministas y un flujo ligero de especificaciones. Ver §6.
 
 ## 2. Instanciar la plantilla
 
-**Opción rápida con IA:** si usas Claude Code, abre el repo y escribe `/instanciar`; el
+**Opción rápida con IA:** si usas Claude Code, abre el repo y escribe `/instanciar`
+(el comando único de arranque: prepara las ramas Git Flow, corre el sprint de definición
+y rellena la plantilla); el
 skill hace la entrevista y rellena todo por ti — detecta si el proyecto es nuevo o
 existente. El resto de esta guía es el proceso manual equivalente, por si lo prefieres.
 
@@ -27,9 +29,16 @@ git init
 
 ### Adoptarla en un proyecto existente
 
-"Use this template" solo funciona para repositorios nuevos. Para llevar esta estructura
-(documentación + capa de IA) a un proyecto que ya iniciaste, copia solo lo que necesites
-— sin tocar tu código ni tu historial:
+"Use this template" solo funciona para repositorios nuevos. Para llevar esta estructura a
+un proyecto que ya iniciaste hay **una sola regla, y no es negociable**:
+
+> **Nunca se sobrescribe nada.** Se trae solo lo que no existe.
+
+No es prudencia excesiva. La receta anterior hacía `cp -R .tpl/docs .`, y probada contra
+un proyecto real —que ya había adoptado una versión anterior de esta plantilla— sustituyó
+**1.532 líneas de documentación escrita por esqueletos vacíos**: su `api.md` pasó de 182
+líneas de contrato real a 96 con cinco placeholders. Se recupera con git, sí, pero solo si
+alguien lo nota, y el diff eran 57 archivos nuevos mezclados con 22 machacados.
 
 ```bash
 # Desde la raíz de tu proyecto, en una rama nueva
@@ -38,140 +47,204 @@ git checkout -b chore/adopt-doc-template
 # Descargar la plantilla sin su historial
 npx degit brayandiazc/project-starter-template-es-ai .tpl
 
-# Traer la documentación, las plantillas de GitHub y la capa de IA (copia selectiva)
-cp -R .tpl/docs .
-cp -R .tpl/.github .
-cp -R .tpl/.claude .tpl/specs .
-cp .tpl/AGENTS.md .tpl/CLAUDE.md .tpl/.mcp.json.example .
-cp .tpl/TEMPLATE-USAGE.md .
+# Traer SOLO lo que te falta. Lo tuyo no se toca.
+(cd .tpl && find docs .claude specs .githooks .github/scripts design -type f 2>/dev/null) \
+  | while IFS= read -r f; do
+      [ -e "$f" ] || { mkdir -p "$(dirname "$f")"; cp ".tpl/$f" "$f"; }
+    done
+
+# Los de la raíz, uno a uno y solo si no existen
+for f in AGENTS.md CLAUDE.md .mcp.json.example .editorconfig; do
+  [ -e "$f" ] || cp ".tpl/$f" "$f"
+done
+
+# Y ver qué existe en AMBOS, para decidirlo tú archivo por archivo
+(cd .tpl && find docs -type f) | while IFS= read -r f; do [ -e "$f" ] && echo "AMBOS: $f"; done
+
 rm -rf .tpl
 ```
 
-- **No sobrescribas** tu `README.md`, `LICENSE` ni `.gitignore` — fusiónalos a mano. Añade `.claude/settings.local.json` a tu `.gitignore`.
-- Rellena los `docs/` con lo que ya sabes de tu proyecto en vez de dejar placeholders.
-- Claude Code lee `CLAUDE.md` (que importa `AGENTS.md`) automáticamente; ejecuta `/init` si quieres que integre el contexto existente.
+Esa última lista es el trabajo de verdad: son los documentos donde la plantilla y tu
+proyecto dicen cosas sobre lo mismo. Nadie puede fusionarlos por ti — pero al menos ahora
+sabes cuáles son en vez de descubrirlo cuando ya se perdieron.
+
+**Después**:
+
+- **Revisa [`RENOMBRADOS.md`](RENOMBRADOS.md)**: si adoptaste una versión anterior, algunos
+  documentos tuyos ahora se llaman de otra forma. Sin esa tabla te quedan los dos, con
+  contenido distinto y ningún check que lo note.
+- Añade `.claude/settings.local.json` a tu `.gitignore`.
+- Activa los git hooks: `git config core.hooksPath .githooks`.
+- Escribe `.template-origin` (repo, commit, fecha y `versiones=` con las versiones
+  del CHANGELOG de la plantilla — sin ellas, `check-inheritance.sh` cae a un criterio
+  por fecha que puede acusar un release tuyo del mismo día) para que
+  `/actualizar-plantilla` y el workflow de avisos funcionen de aquí en adelante.
+- Rellena los `docs/` nuevos con lo que ya sabes del proyecto en vez de dejar placeholders.
+- Claude Code lee `CLAUDE.md` (que importa `AGENTS.md`) automáticamente.
 - Commitea en la rama, abre un PR y luego borra `TEMPLATE-USAGE.md`.
+
+> Si tu proyecto **ya tenía** una versión de esta plantilla, el camino corto es
+> `/actualizar-plantilla`, que hace todo esto y además calcula el diff del tooling.
 
 ## 3. Reemplazar los placeholders
 
-Todos los placeholders usan el formato `[CORCHETES_EN_MAYÚSCULAS]`. Encuéntralos con:
+Todos los placeholders usan el formato `[CORCHETES_EN_MAYÚSCULAS]`. **Pero no se
+sustituyen en todo el repositorio**: pide primero las rutas donde un placeholder es un
+valor por rellenar.
 
 ```bash
-grep -rno '\[[A-ZÁÉÍÓÚÑ0-9_/]\+\]' --include='*.md' --include='.env.example' .
+bash .github/scripts/check-placeholders.sh --rutas-sustituibles   # dónde se toca
+bash .github/scripts/check-placeholders.sh                        # qué falta
+```
+
+Fuera quedan `.github/scripts/`, `.github/workflows/`, `.claude/`, `CHANGELOG.md` y las
+tres plantillas internas (`specs/_template/`, `docs/decisions/0000-template.md`,
+`docs/conventions/_template.md`). Ahí un placeholder es **dato de prueba, texto
+explicativo o lo único que hace útil a la plantilla**, y sustituirlo lo destruye: pasó,
+y rompió tanto el banco de pruebas como `spec-guardrails` — este último semanas después,
+acusando de «sin rellenar» la única línea que sí lo estaba.
+
+Para inspeccionar a ojo, sin sustituir:
+
+```bash
+bash .github/scripts/check-placeholders.sh --rutas-sustituibles \
+  | xargs grep -no '\[[A-ZÁÉÍÓÚÑ0-9_/]\+\]'
 ```
 
 ### Catálogo de placeholders
 
-| Placeholder                                                                                                            | Significado                                             |
-| ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
-| `[NOMBRE_DEL_PROYECTO]`                                                                                                | Nombre del proyecto                                     |
-| `[NOMBRE_EMPRESA]`                                                                                                     | Nombre de la empresa u organización                     |
-| `[AUTOR]`                                                                                                              | Nombre del autor o mantenedor principal                 |
-| `[USUARIO_GITHUB]`                                                                                                     | Usuario u organización de GitHub                        |
-| `[URL_REPOSITORIO]`                                                                                                    | URL del repositorio                                     |
-| `[AÑO]`                                                                                                                | Año del copyright en la licencia                        |
-| `[VERSION]`                                                                                                            | Versión (de una dependencia o del proyecto)             |
-| `[FECHA]`                                                                                                              | Fecha (formato `YYYY-MM-DD`)                            |
-| `[EMAIL_SOPORTE]`                                                                                                      | Correo de contacto/soporte                              |
-| `[EMAIL_SEGURIDAD]`                                                                                                    | Correo para reportar vulnerabilidades                   |
-| `[RUNTIME]`                                                                                                            | Lenguaje/runtime (Node.js, Python, Ruby…)               |
-| `[GESTOR_DE_PAQUETES]`                                                                                                 | npm, pnpm, bundler, pip…                                |
-| `[BASE_DE_DATOS]`                                                                                                      | PostgreSQL, MySQL, MongoDB…                             |
-| `[PUERTO]`                                                                                                             | Puerto local de desarrollo                              |
-| `[COMANDO_*]`                                                                                                          | Comandos del proyecto (instalar, test, build, deploy…)  |
-| `[URL_*]` (`[URL_DEV]`, `[URL_BASE_API]`…)                                                                             | URLs por ambiente y recursos web                        |
-| `[SERVICIO/API]`, `[LINK_*]`, `[OTROS_*]`                                                                              | Recursos específicos de tu proyecto                     |
-| `[HERRAMIENTA]`, `[HERRAMIENTA_*]`, `[OTRA_HERRAMIENTA]`                                                               | Herramientas del stack (build, test, e2e, migraciones…) |
-| `[FRAMEWORK_*]`, `[ORM]`, `[LINTER]`, `[FORMATEADOR]`                                                                  | Piezas del stack por rol                                |
-| `[CACHE]`, `[COLA]`, `[CONTENEDORES]`, `[CI_CD]`, `[MONITOREO]`, `[TTL]`                                               | Infraestructura y operaciones                           |
-| `[RUTA_*]`                                                                                                             | Rutas de carpetas/archivos del proyecto                 |
-| `[LAYOUT_*]`, `[LOCALE_*]`, `[AA/AAA]`                                                                                 | UI, i18n y nivel de accesibilidad objetivo              |
-| `[ENTIDAD_*]`, `[COMPONENTE_*]`, `[SERVICIO_*]`, `[ROL_*]`                                                             | Modelo de dominio y arquitectura                        |
-| `[SEGMENTO_*]`, `[PLAN_*]`, `[PRECIO]`, `[PORCENTAJE]`                                                                 | Modelo de negocio                                       |
-| `[ELEGIDA]`, `[DESCARTADA]`, `[ALTERNATIVA]`                                                                           | Comparativas en decisiones (stack, diseño)              |
-| `[HERRAMIENTA_IA]`, `[EMAIL_HERRAMIENTA_IA]`                                                                           | Herramienta de IA y su email (trailer de coautoría)     |
-| `[TIPO]`, `[OTRO]`, `[EJEMPLO]`, `[COMANDO]`, `[NOMBRES]`, `[PROVEEDOR]`, `[RECURSO]`, `[RIESGO]`, `[OTRAS_VARIABLES]` | Descriptivos locales de cada documento                  |
+| Placeholder                                                                                       | Significado                                                   |
+| ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| `[NOMBRE_DEL_PROYECTO]`                                                                           | Nombre del producto, tal como se lee                          |
+| `[SLUG_REPOSITORIO]`                                                                              | Nombre del repositorio en GitHub (`mi-proyecto`)              |
+| `[AUTOR]`                                                                                         | Nombre del autor o mantenedor principal                       |
+| `[USUARIO_GITHUB]`                                                                                | Usuario u organización de GitHub                              |
+| `[URL_REPOSITORIO]`                                                                               | URL del repositorio                                           |
+| `[AÑO]`                                                                                           | Año del copyright en la licencia                              |
+| `[VERSION]`                                                                                       | Versión (de una dependencia o del proyecto)                   |
+| `[FECHA]`                                                                                         | Fecha (formato `YYYY-MM-DD`)                                  |
+| `[EMAIL_SOPORTE]`                                                                                 | Correo de contacto/soporte                                    |
+| `[EMAIL_SEGURIDAD]`                                                                               | Correo para reportar vulnerabilidades                         |
+| `[RUNTIME]`                                                                                       | Lenguaje/runtime (Node.js, Python, Ruby…)                     |
+| `[GESTOR_DE_PAQUETES]`                                                                            | npm, pnpm, bundler, pip…                                      |
+| `[BASE_DE_DATOS]`                                                                                 | PostgreSQL, MySQL, MongoDB…                                   |
+| `[PUERTO]`                                                                                        | Puerto local de desarrollo                                    |
+| `[COMANDO_*]`                                                                                     | Comandos del proyecto (instalar, test, build, deploy…)        |
+| `[URL_*]` (`[URL_DEV]`, `[URL_BASE_API]`…)                                                        | URLs por ambiente y recursos web                              |
+| `[SERVICIO/API]`, `[LINK_*]`, `[OTROS_*]`                                                         | Recursos específicos de tu proyecto                           |
+| `[HERRAMIENTA]`, `[HERRAMIENTA_*]`, `[OTRA_HERRAMIENTA]`                                          | Herramientas del stack (build, test, e2e, migraciones…)       |
+| `[FRAMEWORK_*]`, `[ORM]`, `[LINTER]`, `[FORMATEADOR]`                                             | Piezas del stack por rol                                      |
+| `[CACHE]`, `[COLA]`, `[CONTENEDORES]`, `[CI_CD]`, `[MONITOREO]`, `[TTL]`                          | Infraestructura y operaciones                                 |
+| `[PROVEEDOR_*]` (`[PROVEEDOR_HOSTING]`, `[PROVEEDOR_PAGOS]`…), `[ESTRATEGIA_BACKUP]`              | Servicios transversales del marco técnico                     |
+| `[COSTO_*]` (`[COSTO_MES]`, `[COSTO_TOTAL]`)                                                      | Cifras del marco de infraestructura                           |
+| `[STACK_*]` (`[STACK_DEFAULT]`, `[STACK_ALTERNO]`), `[REGLA_DURA]`, `[CUANDO_ENTRA]`              | Stacks y reglas duras del marco técnico                       |
+| `[URL]`                                                                                           | Una URL de fuente, en las tablas de discovery                 |
+| `[SERVIDOR]`, `[ID_SNAPSHOT]`                                                                     | Nombre del host y de un snapshot, en los comandos de respaldo |
+| `[RUTA_*]`                                                                                        | Rutas de carpetas/archivos del proyecto                       |
+| `[LAYOUT_*]`, `[LOCALE_*]`, `[AA/AAA]`                                                            | UI, i18n y nivel de accesibilidad objetivo                    |
+| `[ENTIDAD_*]`, `[COMPONENTE_*]`, `[SERVICIO_*]`, `[ROL_*]`, `[ACTOR_*]`                           | Modelo de dominio y arquitectura                              |
+| `[SEGMENTO_*]`, `[PLAN_*]`, `[PRECIO]`, `[PORCENTAJE]`                                            | Modelo de negocio                                             |
+| `[ELEGIDA]`, `[DESCARTADA]`, `[ALTERNATIVA]`                                                      | Comparativas en decisiones (stack, diseño)                    |
+| `[HERRAMIENTA_IA]`, `[EMAIL_HERRAMIENTA_IA]`                                                      | Herramienta de IA y su email (trailer de coautoría)           |
+| `[TIPO]`, `[OTRO]`, `[EJEMPLO]`, `[COMANDO]`, `[NOMBRES]`, `[PROVEEDOR]`, `[RECURSO]`, `[RIESGO]` | Descriptivos locales de cada documento                        |
+| `[RAZON]`, `[NOTA]`, `[HUECO]`, `[TRAMPA]`, `[CONSECUENCIA]`, `[QUE_FALTA]`, `[CASO_DE_USO]`      | Ídem: la celda que explica el porqué de una fila              |
+| `[PARA_QUE]`, `[COMO]`, `[CREDENCIAL]`, `[RESPONSABLE]`                                           | Columnas de la tabla de operación de servicios                |
+| `[MODELO]`, `[UNIDAD]`, `[RECORRIDO]`, `[TECNOLOGIA]`                                             | Modelos de IA, su unidad de cobro y tecnologías comparadas    |
 
 > Mantén este catálogo actualizado: cualquier `[PLACEHOLDER]` nuevo que introduzcas debería
 > aparecer aquí — el CI lo verifica con `.github/scripts/check-placeholders.sh`.
 
+**Globales y posicionales.** Un placeholder es **global** si tiene una sola respuesta para
+todo el repositorio (`NOMBRE_DEL_PROYECTO`, `USUARIO_GITHUB`, los `COMANDO_*`): se puede
+sustituir en bloque. Es **posicional** si significa algo distinto en cada aparición —las
+cuatro últimas filas de la tabla lo son casi enteras: `VERSION` es la versión de una pieza
+distinta cada vez, y `ELEGIDA`/`DESCARTADA` son los dos lados de una comparación por
+tabla—. Los posicionales **se rellenan uno a uno, leyendo su contexto**; sustituirlos en
+bloque deja documentos ordenados y falsos, que es peor que dejarlos vacíos. Si el mismo
+placeholder aparece dos veces en un mismo archivo, es posicional.
+
+**El nombre y el slug no son lo mismo.** `NOMBRE_DEL_PROYECTO` es el nombre del producto
+tal como se lee («Registro de Turnos»); `SLUG_REPOSITORIO` es el nombre del repositorio
+(`turnos-app`). Coinciden solo cuando el repositorio se llama igual que el producto, y
+en cuanto se usa un nombre-clave divergen. Los dos son globales, así que la regla de
+arriba no los separa: lo que los separa es **dónde van**.
+
+> Un nombre de producto **nunca** aparece en una URL, una ruta ni un comando. Ahí va
+> siempre el slug: badges, `cd`, `git clone`, `gh api`, `URL_REPOSITORIO`.
+
+No es cosmético. Un badge roto se ve; `cd Registro de Turnos` y
+`gh api repos/mi-usuario/Registro de Turnos/...` se leen como instrucciones correctas
+hasta que alguien las ejecuta.
+
+### Pendientes: lo que aún no se puede rellenar
+
+El detalle operativo vive en la skill [`/instanciar`](.claude/skills/instanciar/SKILL.md)
+(Paso 4 → «Lo que no se puede rellenar todavía»), que es la que se ejecuta — aquí solo
+la sintaxis, para el camino manual:
+
+- **Un dato que falta en una línea** se marca en su misma línea:
+  `[EMAIL_SEGURIDAD] <!-- pendiente: aún sin buzón -->`. En prosa sin placeholder,
+  una frase corta y la misma marca (no te inventes placeholders fuera del catálogo).
+- **Un dato que falta en todo el repositorio** (el buzón del cliente, el dominio sin
+  contratar) se declara UNA vez en un archivo `.pendientes` en la raíz:
+  `EMAIL_SOPORTE=el cliente aún no da el buzón`.
+- Los marcados no fallan el check, pero **se listan en cada ejecución** — resolverlos
+  debe molestar un poco, no olvidarse.
+
+> **Al citar un placeholder en prosa, escribe su nombre sin corchetes** — `NOMBRE_DEL_PROYECTO`,
+> no entre `[` `]`. Un documento que habla _sobre_ los placeholders (una bitácora, una
+> spec, este mismo archivo) los tiene igual de literales que uno sin rellenar, y el check
+> no distingue intención. Los archivos que existen para explicarlos van en la lista `SKIP`
+> de `check-placeholders.sh`; el resto, sin corchetes.
+
 ## 4. Orden recomendado de llenado
 
 1. `README.md` — la portada del proyecto.
-2. `docs/architecture/stack.md` — define el stack.
-3. `docs/architecture/architecture.md` — vista de alto nivel.
-4. `docs/architecture/database.md` — modelo de datos.
-5. `docs/architecture/auth.md` — autenticación y autorización.
-6. `docs/architecture/api.md` — contrato de API.
-7. `docs/architecture/design.md` — diseño técnico / UI-UX.
-8. `docs/product/business-model.md` — modelo de negocio.
-9. `docs/product/roadmap.md` — roadmap.
-10. `docs/decisions/` — crea un ADR cada vez que tomes una decisión relevante.
+2. `docs/marco-tecnico.md` — elige el stack (§3) para el tipo de proyecto.
+3. `docs/architecture/stack.md` — registra lo elegido y las desviaciones.
+4. `docs/architecture/architecture.md` — vista de alto nivel.
+5. `docs/architecture/database.md` — modelo de datos.
+6. `docs/architecture/auth.md` — autenticación y autorización.
+7. `docs/architecture/api.md` — contrato de API.
+8. `docs/architecture/pantallas.md` — mapa de pantallas y recorrido crítico.
+9. `docs/product/product-definition.md` — visión, alcance de la v1, fuera de alcance y negocio.
+10. `docs/product/roadmap.md` — roadmap.
+11. `docs/decisions/` — crea un ADR cada vez que tomes una decisión relevante.
 
-## 5. Inventario de archivos
+### Qué arranca vacío (historial de la plantilla)
 
-| Archivo                       | Propósito                                 | ¿Obligatorio?        |
-| ----------------------------- | ----------------------------------------- | -------------------- |
-| `README.md`                   | Portada del proyecto                      | Sí                   |
-| `CONTRIBUTING.md`             | Cómo contribuir y flujo Git               | Recomendado          |
-| `CODE_OF_CONDUCT.md`          | Código de conducta                        | Recomendado          |
-| `SECURITY.md`                 | Política de seguridad                     | Recomendado          |
-| `CHANGELOG.md`                | Historial de cambios                      | Recomendado          |
-| `LICENSE`                     | Licencia                                  | Sí                   |
-| `.env.example`                | Contrato de variables de entorno          | Si hay configuración |
-| `.gitignore`, `.editorconfig` | Higiene del repo                          | Recomendado          |
-| `.github/`                    | Plantillas de issues/PR, automatizaciones | Opcional             |
-| `.github/workflows/`          | CI activo (calidad de docs, secretos)     | Recomendado          |
-| `.github/scripts/`            | Scripts de verificación y sus pruebas     | Recomendado          |
-| `docs/architecture/*`         | Documentación técnica                     | Según necesidad      |
-| `docs/product/*`              | Negocio y roadmap                         | Según necesidad      |
-| `docs/decisions/*`            | Registro de decisiones (ADR)              | Recomendado          |
-| `docs/conventions/*`          | Convenciones de trabajo                   | Según necesidad      |
+Un proyecto nuevo hereda las **herramientas** de la plantilla, no su **vida**. Al
+instanciar quedan a cero:
+
+| Archivo           | Cómo queda                                                                                                                                                       |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `specs/`          | Solo `_template/`; las specs de la plantilla no se heredan                                                                                                       |
+| `CHANGELOG.md`    | Cabecera + `## [Unreleased]` **con una viñeta del arranque** — nunca vacío: `check-changelog.sh` bloquearía tu primer PR. Esa viñeta se convierte en tu `v0.1.0` |
+| `docs/decisions/` | Solo `0000-template.md` y `0001-record-architecture-decisions.md`                                                                                                |
+| `docs/product/*`  | Esqueletos con placeholders, que rellena el sprint de definición                                                                                                 |
+
+Los ADRs `0002` en adelante son decisiones que tomó la plantilla, no tu proyecto: lo
+heredado se resume en el ADR de instanciación, con enlace al repositorio origen.
+
+El job `herencia` de `quality.yml` lo verifica de forma determinista: `.template-origin`
+guarda la fecha de instanciación y las versiones de la plantilla (`versiones=`), y nada
+puede venir de antes de esa fecha ni repetir esas versiones.
 
 ### Qué borrar si no aplica
 
-- Convenciones de `docs/conventions/` que no uses (p. ej. `i18n.md` si no internacionalizas).
-- Secciones del `README.md` que no apliquen (p. ej. la tabla de Deployment).
-- Documentos de `docs/architecture/` que no correspondan (p. ej. `api.md` si no expones API).
+**La tabla de poda por capacidad vive en la skill
+[`/instanciar`](.claude/skills/instanciar/SKILL.md) (Paso 3)** — es la que se ejecuta y
+la más completa (incluye qué skills y agentes arrastra cada «no»). Aquí solo lo que esa
+tabla no cubre:
+
 - Los workflows de ejemplo en `.github/workflows/` si no usas GitHub Actions. Los
   workflows **activos** (`quality.yml`, `secret-scan.yml`) funcionan en cualquier stack —
   consérvalos si usas GitHub Actions.
-- **Siempre** borra lo exclusivo del repo-plantilla: `.github/workflows/template-parity.yml`,
-  `.github/scripts/check-parity.sh` y la skill `portar-cambio` (la skill `/instanciar`
-  lo hace por ti).
+- **Siempre** borra lo exclusivo del repo-plantilla: este mismo archivo,
+  `RENOMBRADOS.md` y la skill `/actualizar-plantilla` si no vas a sincronizar mejoras
+  (la skill `/instanciar` se encarga).
 
-## 6. `architecture/X.md` vs `conventions/X.md`
-
-Hay dos documentos sobre "base de datos" y dos sobre "autenticación", **a propósito**:
-
-- `docs/architecture/database.md` describe **el modelo de datos de tu proyecto** (entidades, relaciones, ERD). Cambia con cada proyecto.
-- `docs/conventions/database.md` describe **las reglas reusables** de cómo modelas datos (nomenclatura, índices, tipos). Es transversal.
-
-La misma distinción aplica a `architecture/auth.md` (cómo funciona aquí) vs `conventions/authentication.md` (reglas de autenticación).
-
-## 7. Adaptar por tipo de proyecto
-
-Esta plantilla es **multiplataforma**: el núcleo (gobernanza, arquitectura, decisiones, producto y la mayoría de las convenciones) aplica igual a proyectos web, móviles y de escritorio. Lo que cambia es un puñado de documentos con sesgo web. Ajusta según tu caso:
-
-### Web
-
-- Funciona tal cual. Aprovecha `conventions/seo.md`, `conventions/views-and-layouts.md`, `conventions/transactional-emails.md` y `architecture/api.md`.
-
-### Móvil (iOS / Android / multiplataforma)
-
-- **Borra**: `conventions/seo.md`.
-- **Reenfoca**: `conventions/views-and-layouts.md` → navegación y pantallas; `architecture/api.md` → consumo de API (tu app suele ser cliente); `conventions/deploy.md` → publicación en App Store / Play Store; la tabla de _Deployment_ del `README` → canales/tracks (beta, producción).
-- **Crea** (con [`_template.md`](docs/conventions/_template.md)): release a stores (versionado, firma/code-signing, capturas y ASO), permisos del dispositivo, notificaciones push, modo offline.
-
-### Escritorio (Electron / Tauri / nativo)
-
-- **Borra**: `conventions/seo.md`.
-- **Reenfoca**: `conventions/views-and-layouts.md` → ventanas y vistas; `conventions/deploy.md` → empaquetado e instaladores; la tabla de _Deployment_ del `README` → releases firmados.
-- **Crea**: empaquetado por SO, _code signing_ y notarización, auto-update, telemetría / reporte de crashes.
-
-> En todos los casos vale la regla general: **borra lo que no aplique** y crea convenciones nuevas con `docs/conventions/_template.md`. Hay una lista de convenciones opcionales sugeridas en [`docs/conventions/README.md`](docs/conventions/README.md).
-
-## 8. Mantener la documentación viva
+## 5. Mantener la documentación viva
 
 - Actualiza la línea **"Última actualización: [FECHA]"** al editar un documento.
 - Cada decisión arquitectónica relevante se registra como un **ADR** en `docs/decisions/` (ver su [README](docs/decisions/README.md)).
@@ -192,36 +265,22 @@ mejoras (nuevos scripts, hooks o workflows) a tu proyecto:
   aplicarlo — sin tocar tu documentación ya rellenada.
 - Sigue los releases/tags del repositorio de la plantilla para saber qué cambió.
 
-## 9. La capa de IA
+## 6. La capa de IA
 
-Esta es la variante **lista para IA**. Sobre la base de documentación añade:
+- **[`AGENTS.md`](AGENTS.md)** — el contexto canónico para cualquier agente y el
+  **índice único** de la documentación. **[`CLAUDE.md`](CLAUDE.md)** es un puente de una
+  línea que lo importa (Claude Code lee `CLAUDE.md`; otras herramientas, `AGENTS.md`).
+- **[`.claude/agents/`](.claude/agents)** — subagentes, para trabajo autónomo sobre
+  archivos. **[`.claude/skills/`](.claude/skills)** — skills, para procedimientos que
+  necesitan hablar con la persona. La lista viva está en cada carpeta: no se duplica
+  aquí porque se desincroniza.
+- **[`.claude/hooks/`](.claude/hooks)** — guardrails **deterministas**, activos por
+  defecto: bloquean romper el branching, escribir sobre secretos y editar código sin
+  spec. Es lo que convierte las reglas de `AGENTS.md` en garantías.
+- **[`specs/`](specs/README.md)** — el flujo de especificaciones para cambios no
+  triviales. Si necesitas uno más formal, hay alternativas en su README.
+- **[`docs/conventions/ai-agents.md`](docs/conventions/ai-agents.md)** — el método:
+  dónde se verifica, dónde falla el agente en silencio y qué se revisa a mano.
 
-- **[`AGENTS.md`](AGENTS.md)** — el archivo de instrucciones canónico para cualquier
-  agente de IA. **[`CLAUDE.md`](CLAUDE.md)** es un puente de una línea que lo importa
-  (Claude Code lee `CLAUDE.md`; otras herramientas leen `AGENTS.md` — mismo contenido,
-  dos nombres).
-- **[`.claude/agents/`](.claude/agents)** — **subagentes** de ejemplo (architect,
-  code-reviewer, test-author, doc-keeper, security-reviewer, debugger, explorer).
-- **[`.claude/skills/`](.claude/skills)** — **skills** de ejemplo (instanciar, new-adr,
-  new-spec, commit, open-issue, open-pr, changelog, release, actualizar-plantilla,
-  seo-audit, i18n-parity, design-system-audit, copywriting, accessibility-audit,
-  refactor, migration-guard; `portar-cambio` es exclusiva del repo-plantilla).
-- **[`.claude/hooks/`](.claude/hooks)** — **guardrails deterministas** opt-in
-  (git-guardrails y secret-guardrails; ver
-  [`docs/conventions/ai-agents.md`](docs/conventions/ai-agents.md)).
-- **[`specs/`](specs/README.md)** — un flujo ligero basado en especificaciones para
-  cambios no triviales.
-- **[`docs/conventions/ai-agents.md`](docs/conventions/ai-agents.md)** — las reglas para
-  trabajar con IA (revisión, secretos, atribución).
-
-> Los subagentes y skills son **ejemplos**: se mantienen agnósticos al stack porque
-> delegan en tus `docs/`. Adáptalos o elimínalos según el proyecto. ¿Necesitas un proceso
-> de especificación más formal y pesado? Mira las alternativas en
-> [`specs/README.md`](specs/README.md).
-
-### Variantes de esta familia
-
-- 🇪🇸 Español con IA: este repositorio (`project-starter-template-es-ai`).
-- 🇬🇧 Inglés con IA: <https://github.com/brayandiazc/project-starter-template-en-ai>
-- 🇪🇸 Español sin IA: <https://github.com/brayandiazc/project-starter-template-es>
-- 🇬🇧 Inglés sin IA: <https://github.com/brayandiazc/project-starter-template-en>
+> Se mantienen agnósticos al stack porque delegan en tus `docs/`. Adáptalos al producto
+> en vez de duplicar sus reglas.

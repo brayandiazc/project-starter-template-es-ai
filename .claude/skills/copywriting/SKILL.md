@@ -3,8 +3,6 @@ name: copywriting
 description: Revisa o produce textos visibles para la persona usuaria (texto de UI, encabezados, botones, mensajes de error, marketing) con la voz y el tono del proyecto. Úsalo cuando la persona pida escribir/mejorar textos, corregir la redacción, revisar el tono o redactar microcopy (p. ej. "escribe el texto del estado vacío", "haz este mensaje de error más amable", "revisa el titular de la landing").
 ---
 
-<!-- Skill de ejemplo de la plantilla — adáptalo o elimínalo según tu proyecto. -->
-
 Revisa o produce textos visibles para la persona usuaria que coincidan con la voz del proyecto.
 
 1. Establece la voz y el tono:

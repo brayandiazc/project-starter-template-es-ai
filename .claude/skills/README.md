@@ -1,19 +1,25 @@
 # Skills
 
 Las skills de esta carpeta son **ejemplos** que se instalan con la plantilla: se
-mantienen agnósticas al stack porque delegan en tus [`docs/`](../../docs/README.md).
+mantienen agnósticas al stack porque delegan en tus `docs/` (índice en
+[`AGENTS.md`](../../AGENTS.md)).
 Adáptalas o elimínalas según el proyecto.
 
 ## Reglas de estructura (el CI las valida)
 
 `quality.yml` ejecuta [`check-skills.sh`](../../.github/scripts/check-skills.sh) en
-cada push/PR:
+cada PR (y `pre-push` en local):
 
 - Cada skill vive en `<nombre-kebab>/SKILL.md`.
 - El `name` del frontmatter es igual al nombre de la carpeta, en kebab-case.
 - La `description` no está vacía y dice **cuándo invocarla** — el agente enruta por
   ese campo, así que escríbela como disparador ("Úsalo cuando la persona pida…"),
   con ejemplos de frases, no como resumen de marketing.
+- El cuerpo cabe en **~150 líneas** (el check lo impone, sin excepciones). Lo
+  enciclopédico —tablas, catálogos, el porqué largo de una regla— va en un
+  `reference.md` junto a la skill, que el cuerpo manda leer **en el paso que lo
+  necesita** (así el contexto solo carga el detalle cuando toca; `instanciar` es el
+  ejemplo).
 - Lo mismo aplica a los subagentes de [`../agents/`](../agents) (`name` = nombre de
   archivo, `description` no vacía).
 
@@ -29,8 +35,6 @@ skill se activa). No dupliques otra skill (enlázala) ni metas reglas del proyec
 name: nueva-skill
 description: Qué hace en una frase. Úsalo cuando la persona pida X o Y (p. ej. "frase que diría el usuario", "otra frase"). Qué NO hace, si puede confundirse.
 ---
-
-<!-- Skill de ejemplo de la plantilla — adáptalo o elimínalo según tu proyecto. -->
 
 Una línea sobre el problema que esta skill evita y a qué documento de `docs/` se remite.
 

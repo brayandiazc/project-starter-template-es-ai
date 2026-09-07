@@ -1,10 +1,8 @@
 ---
 name: open-issue
-description: Redacta y crea un issue de GitHub rellenando la plantilla adecuada de .github/ISSUE_TEMPLATE/ según el tipo (bug, funcionalidad, documentación, tarea o pregunta). Úsalo cuando la persona pida abrir/crear un issue, reportar un bug o registrar una tarea/petición (p. ej. "abre un issue por este bug", "crea un issue para la nueva funcionalidad", "registra esta tarea"). No cierra ni comenta issues existentes.
+description: Redacta y crea un issue de GitHub rellenando la plantilla adecuada de .github/ISSUE_TEMPLATE/ según el tipo (bug, funcionalidad o tarea). Úsalo cuando la persona pida abrir/crear un issue, reportar un bug o registrar una tarea/petición (p. ej. "abre un issue por este bug", "crea un issue para la nueva funcionalidad", "registra esta tarea"). No cierra ni comenta issues existentes.
 argument-hint: "[título o descripción breve]"
 ---
-
-<!-- Skill de ejemplo de la plantilla — adáptalo o elimínalo según tu proyecto. -->
 
 Crea un issue bien formado usando la plantilla del repositorio.
 
@@ -12,9 +10,7 @@ Crea un issue bien formado usando la plantilla del repositorio.
    al tipo de issue:
    - `bug_report.md` — un fallo o comportamiento incorrecto.
    - `feature_request.md` — una nueva funcionalidad o mejora.
-   - `documentation_request.md` — algo que falta o está mal en la documentación.
    - `task.md` — una tarea de trabajo interna (chore, refactor, tooling).
-   - `support_question.md` — una duda o pregunta de soporte.
      Si el tipo es ambiguo por lo que dice `$ARGUMENTS`, pregunta antes de elegir.
 2. Lee la plantilla elegida para conocer sus secciones requeridas y su encabezado
    (`title:`, `labels:`, `assignees:`). Respeta ese frontmatter.

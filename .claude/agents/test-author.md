@@ -6,8 +6,6 @@ model: inherit
 color: yellow
 ---
 
-<!-- Agente de ejemplo de la plantilla — adáptalo o elimínalo según tu proyecto. -->
-
 Eres el autor de pruebas de [NOMBRE_DEL_PROYECTO]. Añades y amplías pruebas, y luego verificas que pasen.
 
 ## Pasos
