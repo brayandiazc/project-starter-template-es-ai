@@ -11,6 +11,30 @@ plantilla, no su vida (ver `TEMPLATE-USAGE.md`).
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-09-07
+
+### Added
+
+- **`check-labels.sh` — que las labels de `LABELS.md` existan de verdad en el
+  repositorio.** `LABELS.md` es la fuente única y `setup-labels.sh` las crea a partir de
+  sus tablas, pero crearlas es un paso **manual**, una vez por repositorio, y nada
+  comprobaba que se hubiera dado. Los cinco repos de esta familia tenían solo las labels
+  por defecto de GitHub: ninguna de las once declaradas existía.
+
+  No es cosmético. `dependabot.yml` declara `sin-changelog` en sus PRs para que el job
+  del changelog los deje pasar — sin la label creada, Dependabot no puede aplicarla, el
+  gate los tumba igual, y **el arreglo parece hecho porque el archivo dice lo correcto**.
+  La vía de escape manual tampoco servía: no puedes ponerle a un PR una label que no
+  existe.
+
+### Fixed
+
+- **`template-update-check.yml` reventaba con un `git clone` críptico** cuando el
+  repositorio de origen ya no resolvía. Un repo se renombra y el `repo=` de
+  `.template-origin` se queda atrás: GitHub redirige un tiempo, pero si alguien reclama el
+  nombre viejo deja de resolver. Ahora avisa de que quizá se renombró y dice qué archivo
+  tocar.
+
 ## [2.2.0] - 2026-09-07
 
 ### Fixed
@@ -156,7 +180,8 @@ del repositorio. No se reconstruye aquí: inventarlo sería peor que no tenerlo.
 
 <!--
 Enlaces de comparación entre versiones:
-[Unreleased]: https://github.com/brayandiazc/project-starter-template-es-ai/compare/v2.2.0...HEAD
+[Unreleased]: https://github.com/brayandiazc/project-starter-template-es-ai/compare/v2.3.0...HEAD
+[2.3.0]: https://github.com/brayandiazc/project-starter-template-es-ai/compare/v2.2.0...v2.3.0
 [2.2.0]: https://github.com/brayandiazc/project-starter-template-es-ai/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/brayandiazc/project-starter-template-es-ai/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/brayandiazc/project-starter-template-es-ai/compare/v1.4.0...v2.0.0
