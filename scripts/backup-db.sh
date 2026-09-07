@@ -3,7 +3,7 @@
 # backup-db.sh — Dump de PostgreSQL → almacenamiento S3-compatible
 # ==============================================================================
 # EJEMPLO FUNCIONAL, no un mandato de stack. Implementa el default de backups que
-# declares en docs/marco-tecnico.md §2: dump comprimido diario a un bucket con
+# declares en docs/architecture/stack.md: dump comprimido diario a un bucket con
 # retención configurable. Habla S3, así que sirve tal cual con cualquier
 # almacenamiento compatible; si tu base de datos no es PostgreSQL, este archivo es
 # el punto de partida — cambia `pg_dump`/`pg_restore` por su equivalente y el resto
@@ -27,7 +27,7 @@
 #   cron (VPS): 0 3 * * * cd /ruta/app && ./scripts/backup-db.sh >> /var/log/backup-db.log 2>&1
 #   Con orquestador: ejecútalo con cron en el host, o como comando programado del contenedor.
 #
-# Restore — PRUÉBALO CADA MES (regla del marco: probar el restore, no solo el backup):
+# Restore — PRUÉBALO CADA MES. Un respaldo que nunca se restauró es una suposición:
 #   export AWS_ACCESS_KEY_ID=$BACKUP_S3_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY=$BACKUP_S3_SECRET_KEY
 #   aws s3 cp "s3://$BACKUP_S3_BUCKET/db/<archivo>.dump" . \
 #     --endpoint-url "$BACKUP_S3_ENDPOINT"

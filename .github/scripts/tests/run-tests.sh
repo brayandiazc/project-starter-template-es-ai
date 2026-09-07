@@ -17,7 +17,6 @@ CHECK_RELEASE="$REPO_ROOT/.github/scripts/check-release.sh"
 DESIGN_MD="$REPO_ROOT/.github/scripts/design-md.sh"
 CHECK_INSTRUCCIONES="$REPO_ROOT/.github/scripts/check-instructions.sh"
 CHECK_HOOKS="$REPO_ROOT/.github/scripts/check-hooks-enabled.sh"
-CHECK_COSTOS="$REPO_ROOT/.github/scripts/check-costs.sh"
 
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
@@ -1433,62 +1432,6 @@ if [ -f "$CHECK_HOOKS" ]; then
   # Fuera de un repo git tampoco opina.
   mkdir -p "$TMP/hk-no-git/.githooks"
   run_hooks hk-no-git; check "hooks: fuera de un repo git → no opina" 0 $?
-fi
-
-# ── check-costs.sh ───────────────────────────────────────────────────────────
-# "Se revisa cada trimestre" es una regla que solo se cumple leyendo, y esas no se
-# cumplen. Aquí el olvido es caro: hay proveedores que han subido más del 100%, así
-# que un presupuesto de hace dos trimestres no está algo desviado — está mal, y con
-# pinta de estar bien.
-if [ -f "$CHECK_COSTOS" ]; then
-  echo "check-costs.sh:"
-
-  # Modo plantilla: la fecha es el placeholder, no hay precios que caduquen. Sin
-  # esto, la propia plantilla salía en rojo pidiendo una fecha de verificación de
-  # unos precios que todavía no existen.
-  mkdir -p "$TMP/cs-tpl/docs"
-  printf '# I\n\n> **Fecha de verificación**: [FECHA]\n' >"$TMP/cs-tpl/docs/marco-tecnico-infraestructura.md"
-  (bash "$CHECK_COSTOS" "$TMP/cs-tpl" >/dev/null); check "fecha en placeholder (plantilla) → pasa" 0 $?
-  costos() { # $1 = nombre, $2 = fecha (o vacío para omitir la cabecera)
-    mkdir -p "$TMP/$1/docs"
-    if [ -n "${2:-}" ]; then
-      printf '# Costos\n\n> **Fecha de verificación**: %s\n' "$2" >"$TMP/$1/docs/marco-tecnico-infraestructura.md"
-    else
-      printf '# Costos\n\nsin cabecera\n' >"$TMP/$1/docs/marco-tecnico-infraestructura.md"
-    fi
-  }
-  run_costos() { (bash "$CHECK_COSTOS" "$TMP/$1" >/dev/null 2>&1); }
-  hoy() { python3 -c 'import datetime,sys; print(datetime.date.today()-datetime.timedelta(days=int(sys.argv[1])))' "$1"; }
-
-  costos co-hoy "$(hoy 0)"
-  run_costos co-hoy; check "costos: verificados hoy → pasa" 0 $?
-
-  costos co-limite "$(hoy 99)"
-  run_costos co-limite; check "costos: 99 días (dentro del margen) → pasa" 0 $?
-
-  costos co-viejo "$(hoy 101)"
-  run_costos co-viejo; check "costos: 101 días → falla" 1 $?
-
-  costos co-muy-viejo "$(hoy 400)"
-  run_costos co-muy-viejo; check "costos: más de un año → falla" 1 $?
-
-  # Una fecha en el futuro no verifica nada: es un descuido, no una revisión.
-  costos co-futuro "2099-01-01"
-  run_costos co-futuro; check "costos: fecha futura → falla" 1 $?
-
-  costos co-sin-fecha ""
-  run_costos co-sin-fecha; check "costos: sin 'Fecha de verificación' → falla" 1 $?
-
-  # Un proyecto que podó el documento no arrastra el check.
-  mkdir -p "$TMP/co-podado/docs"
-  run_costos co-podado; check "costos: sin el documento → no opina" 0 $?
-
-  # El cálculo va en python3, no en `date`: BSD y GNU no comparten la sintaxis de
-  # aritmética de fechas y el mismo check daría resultados distintos en local y en
-  # el CI. Ese patrón ya costó un CI rojo con verde en macOS (hallazgo 1).
-  salida_co="$(bash "$CHECK_COSTOS" "$TMP/co-viejo" 2>&1 || true)"
-  printf '%s' "$salida_co" | grep -q 'días'
-  check "costos: el mensaje dice cuántos días han pasado" 0 $?
 fi
 
 # ── check-skills.sh: el modelo de cada subagente se DECLARA ──────────────────

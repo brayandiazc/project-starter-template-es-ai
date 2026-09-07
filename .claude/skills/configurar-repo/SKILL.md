@@ -8,7 +8,7 @@ autenticado; verifica con `gh auth status` antes de empezar.
 
 ## Paso 1 — Contexto
 
-Lee `README.md` y `docs/product/product-definition.md` para derivar descripción y
+Lee `README.md` y `docs/product/business-model.md` para derivar descripción y
 topics. Detecta el repo actual (`gh repo view`). Si no existe remoto, pregunta si
 crearlo (`gh repo create` — público/privado lo decide la persona).
 

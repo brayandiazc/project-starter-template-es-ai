@@ -3,10 +3,10 @@
 > Reglas y estándares de [TEMA] en [NOMBRE_DEL_PROYECTO].
 > **Última actualización**: [FECHA]
 
-> El stack concreto —motor, librería, herramientas— lo fija
-> [`../marco-tecnico.md`](../marco-tecnico.md) y lo registra
-> [`../architecture/stack.md`](../architecture/stack.md). Aquí van solo las **reglas**,
-> que no cambian al cambiar de herramienta.
+> El stack concreto —motor, librería, herramientas— lo decide el proyecto y lo registra
+> [`../architecture/stack.md`](../architecture/stack.md), con el porqué en
+> [`../decisions/`](../decisions/README.md). Aquí van solo las **reglas**, que no cambian
+> al cambiar de herramienta.
 
 ## Estructura
 

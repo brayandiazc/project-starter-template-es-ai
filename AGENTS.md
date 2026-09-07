@@ -16,25 +16,22 @@ en `docs/` — este archivo es su único índice; léelo antes de un trabajo no 
 
 ## Mapa del repositorio (lee esto primero)
 
-| Necesitas saber…                           | Lee                                                                              |
-| ------------------------------------------ | -------------------------------------------------------------------------------- |
-| Con qué se construye y cuándo desviarse    | [`docs/marco-tecnico.md`](docs/marco-tecnico.md)                                 |
-| Qué cuesta, cómo se opera y quién hace qué | [`docs/marco-tecnico-infraestructura.md`](docs/marco-tecnico-infraestructura.md) |
-| Cómo trabajar aquí sin revisar código      | [`docs/conventions/ai-agents.md`](docs/conventions/ai-agents.md)                 |
-| Qué es el producto y su alcance (v1)       | [`docs/product/product-definition.md`](docs/product/product-definition.md)       |
-| Qué se pregunta para definir el producto   | [`docs/product/interview.md`](docs/product/interview.md)                         |
-| Con qué evidencia, y qué se descartó       | [`docs/product/discovery.md`](docs/product/discovery.md)                         |
-| Qué está hecho y qué viene después         | [`docs/product/roadmap.md`](docs/product/roadmap.md)                             |
-| Qué stack se eligió **aquí**               | [`docs/architecture/stack.md`](docs/architecture/stack.md)                       |
-| Cómo está construido el sistema            | [`docs/architecture/architecture.md`](docs/architecture/architecture.md)         |
-| Modelo de datos                            | [`docs/architecture/database.md`](docs/architecture/database.md)                 |
-| Autenticación y permisos                   | [`docs/architecture/auth.md`](docs/architecture/auth.md)                         |
-| Contrato de la API                         | [`docs/architecture/api.md`](docs/architecture/api.md)                           |
-| Qué pantallas hay y por dónde va cada una  | [`docs/architecture/pantallas.md`](docs/architecture/pantallas.md)               |
-| Cómo escribimos código                     | [`docs/conventions/`](docs/conventions/README.md)                                |
-| Por qué se tomaron las decisiones          | [`docs/decisions/`](docs/decisions/README.md)                                    |
-| Identidad visual y tokens                  | [`design/`](design/README.md)                                                    |
-| El sistema de diseño, para agentes de IA   | [`DESIGN.md`](DESIGN.md)                                                         |
+| Necesitas saber…                           | Lee                                                                      |
+| ------------------------------------------ | ------------------------------------------------------------------------ |
+| Cómo trabajar aquí sin revisar código      | [`docs/conventions/ai-agents.md`](docs/conventions/ai-agents.md)         |
+| El ciclo de trabajo, de la spec al release | [`docs/conventions/workflow.md`](docs/conventions/workflow.md)           |
+| Por qué existe el producto y cómo se paga  | [`docs/product/business-model.md`](docs/product/business-model.md)       |
+| Qué está hecho y qué viene después         | [`docs/product/roadmap.md`](docs/product/roadmap.md)                     |
+| Qué stack se eligió **aquí**               | [`docs/architecture/stack.md`](docs/architecture/stack.md)               |
+| Cómo está construido el sistema            | [`docs/architecture/architecture.md`](docs/architecture/architecture.md) |
+| Modelo de datos                            | [`docs/architecture/database.md`](docs/architecture/database.md)         |
+| Autenticación y permisos                   | [`docs/architecture/auth.md`](docs/architecture/auth.md)                 |
+| Contrato de la API                         | [`docs/architecture/api.md`](docs/architecture/api.md)                   |
+| Qué pantallas hay y por dónde va cada una  | [`docs/architecture/pantallas.md`](docs/architecture/pantallas.md)       |
+| Cómo escribimos código                     | [`docs/conventions/`](docs/conventions/README.md)                        |
+| Por qué se tomaron las decisiones          | [`docs/decisions/`](docs/decisions/README.md)                            |
+| Identidad visual y tokens                  | [`design/`](design/README.md)                                            |
+| El sistema de diseño, para agentes de IA   | [`DESIGN.md`](DESIGN.md)                                                 |
 
 > **`architecture/` vs `conventions/`**: `architecture/` responde **qué construye este
 > proyecto** (su modelo de datos, su API, sus pantallas); `conventions/` responde **cómo
@@ -65,8 +62,7 @@ en `docs/` — este archivo es su único índice; léelo antes de un trabajo no 
 
 - **Acompaña activamente.** Pregunta ante ambigüedad de alcance o prioridad en vez de
   asumir; sugiere lo que la persona no pidió pero necesitará. La prioridad la marca
-  [`docs/product/product-definition.md`](docs/product/product-definition.md) — lo que
-  no está en la v1 no se implementa sin pasar por el subagente `product-coach`.
+  [`docs/product/roadmap.md`](docs/product/roadmap.md).
   El ciclo completo está en [`docs/conventions/workflow.md`](docs/conventions/workflow.md).
 - **Sin spec no hay cambio (obligatorio).** Toda funcionalidad o corrección
   (`feat/*`, `fix/*`) nace de una spec en [`specs/`](specs/README.md) con el mismo

@@ -1,9 +1,28 @@
 # Convención de agentes de IA
 
 > Cómo se trabaja con agentes de codificación aquí, dado que **la revisión es de
-> resultados, no de código**. Se deriva de los dos principios de
-> [`../marco-tecnico.md`](../marco-tecnico.md) §1 — léelos primero.
-> **Última actualización**: 2026-09-04
+> resultados, no de código**.
+> **Última actualización**: [FECHA]
+
+## Los dos principios
+
+Todo lo demás de este documento se deriva de aquí.
+
+**Verificar > recordar.** Un agente rinde bien cuando puede verificar (leer código
+existente, consultar un esquema, revisar un tipo) y falla cuando tiene que recordar
+(reconstruir de memoria una API, una versión, un flag). El modo de falla es **plausible
+pero incorrecto**: compila, suena razonable, no funciona o funciona mal. No falla
+ruidosamente.
+
+**Menos decisiones no revisadas = menos riesgo.** Si nadie revisa el código, cada
+decisión que el agente toma libremente es riesgo acumulado. Una herramienta con
+convención fuerte **le quita libertad**, y esa pérdida de libertad es lo que protege el
+proyecto.
+
+> **Corolario, al elegir stack**: lo que tenga convención fuerte, API estable y mucho
+> código público rinde mejor con un agente. Es un sesgo hacia lo maduro y aburrido —
+> correcto para lanzar producto, incorrecto para estar a la vanguardia. **La elección es
+> tuya**; esto solo dice qué la abarata.
 
 ## Fuente de verdad
 
@@ -61,7 +80,9 @@ Tres capas. **Ninguna es opcional** — juntas sustituyen a la revisión línea 
 **El esquema de base de datos.** Es poco (una migración, un `schema.rb`), es lo más caro
 de cambiar después, y es lo único que **ni los tests ni el monitoreo detectan**: un
 modelo de datos mal pensado pasa todos los tests y no genera un solo error en el monitor.
-La regla completa está en [`../marco-tecnico.md`](../marco-tecnico.md) §4.5.
+Por eso **se diseña en papel antes del código**: ¿cuál es la entidad central del
+producto? Si hay un documento estructurado que describe el estado (manifest, schema),
+también.
 
 > **Una persona es responsable de cada merge.** No implica leer cada línea; implica que
 > nadie más carga con el resultado.
@@ -77,7 +98,7 @@ Sale bien a la vista y mal por dentro. Esto es lo que hay que mirar de verdad.
 | **Componentes UI custom** | Donde el stack no tenga una capa headless que lo resuelva: focus trap, tecla Escape, ARIA, navegación por teclado. Son pocos en toda la app y se reutilizan — merecen revisión. |
 | **Autorización**          | Políticas que parecen correctas con huecos. Probar con roles distintos, no solo con el propio.                                                                                  |
 | **Concurrencia**          | Aislamiento, deadlocks, locks. Camino feliz correcto, borde mal.                                                                                                                |
-| **Idempotencia**          | Sobre todo con colas y con móvil (ver marco §4.2, regla 4).                                                                                                                     |
+| **Idempotencia**          | Sobre todo con colas y con móvil: la red falla y los requests se reintentan.                                                                                                    |
 | **Sincronía temporal**    | Si hay media: errores de un frame, deriva de timestamps. Pasan los tests y se ven mal en el resultado.                                                                          |
 
 ### Se desactualiza (riesgo medio)
@@ -207,10 +228,9 @@ Claude Code pide aprobación antes de usar cualquier servidor MCP del proyecto.
 - **Nunca** pongas secretos en `.mcp.json`. Referencia variables de entorno (p. ej.
   `${GITHUB_TOKEN}`) y documéntalas en `.env.example` (ver [`secrets.md`](secrets.md)).
 
-> El mapa completo —cada servicio con su vía de acceso, su credencial, su dueño y el
-> reparto entre agente y persona— vive en
-> [`marco-tecnico-infraestructura.md`](../marco-tecnico-infraestructura.md). Aquí queda solo lo
-> propio de la capa de infraestructura.
+> **Escribe el mapa de tus servicios** —cada uno con su vía de acceso, su credencial,
+> su dueño y el reparto entre lo que hace el agente solo, lo que pide permiso y lo que
+> hace siempre la persona—. Un hueco callado se lee como resuelto.
 
 ### MCP de infraestructura (DNS, CDN, servidor)
 
@@ -226,7 +246,7 @@ Aquí no hay recomendación de proveedor, pero sí un criterio que se repite en 
   shell; aquí hay shell.
 
 Cada uno de estos, con su credencial y su dueño, se anota en
-[`marco-tecnico-infraestructura.md`](../marco-tecnico-infraestructura.md) §2.
+[`../architecture/stack.md`](../architecture/stack.md) → «Servicios activos».
 
 ## Guardrails deterministas (activos por defecto)
 

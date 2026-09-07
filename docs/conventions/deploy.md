@@ -4,10 +4,10 @@
 > despliega, se hace rollback y se opera el sistema.
 > **Última actualización**: [FECHA]
 
-> El stack concreto —motor, librería, herramientas— lo fija
-> [`../marco-tecnico.md`](../marco-tecnico.md) y lo registra
-> [`../architecture/stack.md`](../architecture/stack.md). Aquí van solo las **reglas**,
-> que no cambian al cambiar de herramienta.
+> El stack concreto —motor, librería, herramientas— lo decide el proyecto y lo registra
+> [`../architecture/stack.md`](../architecture/stack.md), con el porqué en
+> [`../decisions/`](../decisions/README.md). Aquí van solo las **reglas**, que no cambian
+> al cambiar de herramienta.
 
 ## Ambientes
 
@@ -54,8 +54,7 @@ Confundirlos es descubrir en la urgencia que solo tenías la mitad.
 | Borraste una tabla, una migración salió mal, datos corruptos               | **El dump**     | El snapshot: restaura datos viejos de todo           |
 | Rompiste la máquina: upgrade de SO fallido, disco lleno, Docker inservible | **El snapshot** | El dump: tiene los datos, pero no hay dónde ponerlos |
 
-El marco §4.3 lo dice sin rodeos: **lo que la herramienta de deploy no cubre y queda a
-tu cargo son las
+Sin rodeos: **lo que la herramienta de deploy no cubre y queda a tu cargo son las
 actualizaciones de SO y el espacio en disco.** Esas son exactamente las dos formas de
 romper la máquina, y el dump a R2 no cubre ninguna.
 
@@ -91,8 +90,7 @@ buscarlos en un panel web.
 ```
 
 **Retención: los últimos [N], y se borran los viejos a mano.** Los snapshots se cobran
-por GB almacenado, así que uno olvidado es un cargo que crece en silencio. Su costo está
-en [`marco-tecnico-infraestructura.md`](../marco-tecnico-infraestructura.md).
+por GB almacenado, así que uno olvidado es un cargo que crece en silencio.
 
 > **La restauración se prueba, no se supone.** Una vez al mes, y de los dos: levanta el
 > dump en una base local y reconstruye un servidor de usar y tirar desde el último
@@ -114,13 +112,13 @@ forma permanente.
 
 Eso no cambia una sección: cambia la premisa. Sustituye las de arriba por estas.
 
-| Concepto        | Servidor         | Móvil                                                                                                                                                               |
-| --------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Ambientes       | dev / producción | Desarrollo · **TestFlight** y pista interna de Play · producción                                                                                                    |
-| Procedimiento   | un comando       | `eas build` → subir → **revisión de la store** (horas o días) → publicación                                                                                         |
-| Rollback        | un comando       | **No existe para el binario.** EAS Update revierte el JavaScript; lo demás es publicar una versión nueva y esperar otra revisión                                    |
-| Health check    | endpoint         | Tasa de fallos por versión y adopción de versiones (monitor de errores y consolas de las tiendas)                                                                   |
-| Lo irreversible | —                | **Habrá usuarios en versiones viejas para siempre.** Por eso la API solo agrega campos, nunca borra ni renombra ([`../marco-tecnico.md`](../marco-tecnico.md) §4.2) |
+| Concepto        | Servidor         | Móvil                                                                                                                            |
+| --------------- | ---------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Ambientes       | dev / producción | Desarrollo · **TestFlight** y pista interna de Play · producción                                                                 |
+| Procedimiento   | un comando       | `eas build` → subir → **revisión de la store** (horas o días) → publicación                                                      |
+| Rollback        | un comando       | **No existe para el binario.** EAS Update revierte el JavaScript; lo demás es publicar una versión nueva y esperar otra revisión |
+| Health check    | endpoint         | Tasa de fallos por versión y adopción de versiones (monitor de errores y consolas de las tiendas)                                |
+| Lo irreversible | —                | **Habrá usuarios en versiones viejas para siempre.** Por eso la API solo agrega campos, nunca borra ni renombra                  |
 
 La fila del rollback es la que hay que leer dos veces: **es la razón de que la regla de la
 API no se negocie.** No es rigidez, es que no hay vuelta atrás.

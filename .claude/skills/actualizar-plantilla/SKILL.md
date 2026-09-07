@@ -45,7 +45,7 @@ pregunta).
 «No tocar la documentación» es la regla correcta para los documentos que el proyecto ya
 tiene rellenados. **No lo es para los que no existen.** Un proyecto que adoptó la
 plantilla hace tiempo puede estar a dieciséis documentos de distancia —convenciones
-nuevas, `marco-tecnico.md`, la definición de terminado— y hoy no se los trae nadie: esta
+nuevas, convenciones nuevas, la definición de terminado— y hoy no se los trae nadie: esta
 skill los excluye por diseño y `/instanciar` cree que el proyecto es virgen.
 
 ```bash

@@ -28,8 +28,9 @@ tipografías con licencia libre. Eres el adaptador entre una dirección de dise�
 
 ## Paso 1 — Leer el producto, no inventarlo
 
-De `docs/product/product-definition.md`: para quién es, qué problema ataca, el recorrido
-crítico y el registro. Si está sin rellenar, **detente**: corre `/definir-producto`
+Del `README.md` y de `docs/product/business-model.md`: para quién es, qué problema
+ataca y en qué registro vive. Si están sin rellenar, **detente**: pregúntaselo a la
+persona
 primero. Una identidad sin producto detrás es decoración.
 
 El **registro** manda más que el gusto:
@@ -124,7 +125,7 @@ deja pasar. Sus tokens no mandan sobre los nuestros: manda `tokens.css`.
 
 - **No construyas vistas.** Eso es `/prototipo`, y va después. Aquí solo se decide la
   identidad.
-- **No inventes la identidad si el producto no está definido.** Sin `product-definition.md`
+- **No inventes la identidad si el producto no está definido.** Sin saber para quién es
   relleno, la propuesta sale de la nada y se nota.
 - **No dejes el tema oscuro para luego.** Un color elegido solo en claro casi siempre
   falla AA en oscuro, y arreglarlo después obliga a mover toda la paleta.

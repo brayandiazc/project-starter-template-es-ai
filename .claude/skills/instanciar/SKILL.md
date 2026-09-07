@@ -1,160 +1,136 @@
 ---
 name: instanciar
-description: EL comando de arranque — convierte esta plantilla en un proyecto real de punta a punta con una sola orden. Prepara las ramas Git Flow (develop + rama de documentación), corre el Sprint de definición (producto, mapa de vistas, stack), rellena los placeholders, poda los docs por tipo de proyecto y deja lista la primera spec. Úsalo siempre que la persona llegue con una idea nueva o quiera empezar (p. ej. "instancia la plantilla", "arranquemos el proyecto", "tengo una idea", "empecemos con X").
+description: Instancia esta plantilla en un proyecto real mediante una entrevista guiada — detecta si el proyecto es nuevo o existente, rellena los placeholders, adapta los docs al tipo de proyecto y decide la política de permisos. Úsalo cuando la persona clone/adopte esta plantilla y quiera configurarla para su proyecto (p. ej. "instancia esta plantilla", "configura este template para mi proyecto", "arranca el proyecto desde esta base").
 ---
 
-Convierte esta plantilla en un proyecto real. Dos fuentes se leen **en el paso que las
-cita**, no de corrido: [`reference.md`](reference.md) (tablas de poda, pasadas de
-relleno, el porqué de cada regla) y `TEMPLATE-USAGE.md` (catálogo de placeholders, §3).
-El arranque produce **dos ramas en secuencia**, ambas nacidas de `develop`:
+<!-- Skill de ejemplo de la plantilla — adáptalo o elimínalo según tu proyecto. -->
+
+Convierte esta plantilla en la documentación real de un proyecto mediante una entrevista.
+Lee `TEMPLATE-USAGE.md` primero: es la fuente de verdad del catálogo de placeholders (§3),
+las reglas de borrado por tipo (§7) y el flujo de adopción (§2). Sigue ese documento si
+difiere de los pasos de abajo.
+
+## Paso 0 — Guardián de seguridad (antes de nada)
+
+Detente y avisa si estás sobre el REPO-FUENTE del template (no una instancia):
+
+- Revisa `git remote -v`. Si el origin es el repositorio de la plantilla
+  (`project-starter-template-es-ai`), NO instancies: estarías destruyendo la plantilla.
+- En ese caso, pregunta explícitamente si de verdad se quiere modificar la plantilla
+  original antes de continuar.
+
+## Paso 1 — Detectar contexto (nuevo vs. existente)
+
+Sin preguntar aún, inspecciona el repo para deducir el contexto:
+
+- ¿Hay código real? (`package.json`, `Gemfile`, `pyproject.toml`, `go.mod`, `src/`, etc.)
+- ¿El historial de git tiene commits propios del proyecto o es un clon recién iniciado?
+- ¿Siguen intactos los `[PLACEHOLDERS]`?
+  (`grep -rno '\[[A-ZÁÉÍÓÚÑ0-9_/]\+\]' --include='*.md' .`)
+
+Deduce **NUEVO** (repo vacío / placeholders intactos) o **EXISTENTE** (ya hay código).
+
+## Paso 2 — Confirmar y entrevistar (usa AskUserQuestion)
+
+Muestra tu deducción del Paso 1 y deja corregirla. Luego pregunta SOLO lo que no puedas
+inferir. En proyectos existentes, pre-rellena las respuestas leyendo el código.
+
+- **Lote A · Contexto y tipo:** nuevo/existente; tipo (Web · Móvil · Escritorio ·
+  API/servicio · Librería).
+- **Lote B · Identidad:** nombre, autor, usuario/org de GitHub, empresa (opcional),
+  email de soporte, email de seguridad, licencia y año. Infiere autor/usuario de
+  `git config` y el año de la fecha del sistema.
+- **Lote C · Stack:** runtime, gestor de paquetes, base de datos (o "ninguna"), puerto,
+  comandos (instalar / dev / test / lint). En existente: LÉELO del código, no preguntes.
+- **Lote D · Capacidades:** ¿API? ¿autenticación? ¿i18n? ¿SEO/web pública? ¿emails
+  transaccionales? ¿sistema de diseño/UI? (Cada "no" implica borrar su convención.)
+- **Lote E · Permisos:** ¿dejar el `ask:[Bash]` conservador de `.claude/settings.json`,
+  o crear `.claude/settings.local.json` con una allowlist de solo-lectura?
+
+  Los **tres guardrails** (git, secretos y specs) vienen **activos**: solo se tocan si
+  la persona lo pide expresamente, y entonces queda escrito en el ADR del Paso 6.
+
+  Activa además los git hooks del clon, que no viajan en el repositorio:
+  `bash .github/scripts/check-hooks-enabled.sh --arreglar`. Sin eso, `pre-commit` no
+  formatea y `pre-push` no verifica: los fallos se descubren en el CI.
+
+## Paso 3 — Rellenar / fusionar según contexto
+
+Reemplaza los placeholders del catálogo (`TEMPLATE-USAGE.md §3`) con las respuestas:
+`[NOMBRE_DEL_PROYECTO]`, `[AUTOR]`, `[USUARIO_GITHUB]`, `[NOMBRE_EMPRESA]`,
+`[URL_REPOSITORIO]`, `[AÑO]`, `[EMAIL_SOPORTE]`, `[EMAIL_SEGURIDAD]`, `[RUNTIME]`,
+`[GESTOR_DE_PAQUETES]`, `[BASE_DE_DATOS]`, `[PUERTO]`, `[COMANDO_*]`, `[URL_*]`, `[FECHA]`.
+
+Archivos que se actualizan: `README.md`, `AGENTS.md` (resumen + comandos),
+`docs/architecture/*`, `docs/product/*`, `.env.example`, `LICENSE` (año + autor),
+`SECURITY.md` (emails), `CHANGELOG.md` (primera entrada).
+
+- **NUEVO:** escribe directo desde las respuestas. Trabaja en el repo tal cual.
+- **EXISTENTE:** lee el código e infiere para no dejar `[…]`. **NO sobrescribas**
+  `README.md`, `LICENSE` ni `.gitignore` — propón el merge a mano. Trabaja en una rama
+  `chore/adopt-doc-template`. Sugiere correr `/init` para integrar el contexto del código.
+
+Además, escribe `.template-origin` en la raíz para que `/actualizar-plantilla` pueda
+traer mejoras futuras de la plantilla:
 
 ```
-main ──► develop ──► docs/arranque ──(PR → develop ──► release v0.1.0 a main)──► feat/<primera-spec>
-         (se crea       rama 1:                                                    rama 2:
-         si falta)      toda la documentación                                      scaffolding + prototipo
+repo=<URL de esta plantilla>
+commit=<SHA del HEAD de la plantilla usado como base>
+fecha=<YYYY-MM-DD de hoy>
 ```
 
-## Paso 0 — Guardián y ramas (antes de cualquier contenido)
+## Paso 4 — Aplicar la decisión de permisos (Lote E)
 
-1. **¿Estás a punto de destruir la plantilla?** El nombre del repositorio no sirve
-   para detectarlo; la señal es la combinación de dos cosas:
+Si se eligió "automático", crea `.claude/settings.local.json` con una allowlist de
+comandos de solo-lectura (`ls, cat, head, tail, wc, grep, rg, find, tree, sort, uniq,
+echo, pwd, which`, y `git status/log/diff/branch/show/remote`). Verifica que
+`.claude/settings.local.json` esté en `.gitignore`. Si se eligió "conservador", no toques
+nada de permisos.
 
-   ```bash
-   sin_instanciar=$([ -f TEMPLATE-USAGE.md ] && [ ! -f .template-origin ] && echo sí)
-   remoto=$(git remote get-url origin 2>/dev/null)
-   ```
+Si se aceptaron los **guardrails de git** y/o los **guardrails de secretos**, añade los
+bloques `hooks.PreToolUse` que apuntan a `.claude/hooks/git-guardrails.sh` (matcher
+`Bash`) y `.claude/hooks/secret-guardrails.sh` (matcher `Write|Edit`) — el JSON completo
+está en `docs/conventions/ai-agents.md`. Requieren `python3`.
 
-   | `sin_instanciar` | `remoto`    | Qué es                                                | Qué haces               |
-   | ---------------- | ----------- | ----------------------------------------------------- | ----------------------- |
-   | sí               | **ninguno** | Clon reseteado, listo para instanciar                 | **Sigue**               |
-   | sí               | **hay uno** | La plantilla, o un clon al que le faltó `rm -rf .git` | **PREGUNTA**            |
-   | no               | cualquiera  | Ya instanciado                                        | Modo EXISTENTE (paso 2) |
+## Paso 5 — Limpieza por tipo (regla de TEMPLATE-USAGE.md §7)
 
-   Cuando haya remoto, no adivines: muestra la URL y pregunta. Si falta el reseteo,
-   ofrécelo **solo con confirmación explícita** — es lo único sin vuelta atrás
-   (`reference.md` §Paso 0).
+Borra los docs/convenciones que no apliquen:
 
-2. Detecta el contexto sin preguntar (¿código real?, ¿placeholders intactos?), deduce
-   **NUEVO** o **EXISTENTE** y confírmalo. En EXISTENTE: rama
-   `chore/adopt-doc-template`, **no sobrescribas nada** — solo se trae lo que no existe
-   (`TEMPLATE-USAGE.md` §2). Si ya tiene estructura de plantilla (`docs/conventions/`
-   con contenido), no es adopción: deriva a `/actualizar-plantilla`.
-3. Activa los git hooks: `bash .github/scripts/check-hooks-enabled.sh --arreglar`.
-4. **Asegura que existan las DOS ramas base** — sin `main`, `release.yml` no se dispara
-   nunca y el proyecto no puede publicar:
+- Móvil / Escritorio → borra `docs/conventions/seo.md`; reenfoca `ui`, `api`, `deploy`.
+- API / Librería → borra los docs de UI (`conventions/seo.md`, `conventions/ui.md`,
+  `architecture/pantallas.md`) y la carpeta `design/` con `DESIGN.md`.
+- Cada capacidad respondida "no" en el Lote D → borra su convención (p. ej. sin i18n →
+  `docs/conventions/i18n.md`) **y su skill asociada**: sin i18n → `i18n-parity`; sin
+  base de datos → `migration-guard`; sin SEO/web pública → `seo-audit`; sin UI (API o
+  librería) → `design-system-audit`, `accessibility-audit`, `copywriting`, `identidad`,
+  `prototipo` y el subagente `designer`.
+- **Siempre** borra los archivos exclusivos del repo-plantilla: el workflow
+  `.github/workflows/template-parity.yml`, el script `.github/scripts/check-parity.sh`
+  y la skill `.claude/skills/portar-cambio/` — solo sirven para mantener la familia de
+  variantes, no a un proyecto instanciado.
 
-   ```bash
-   git show-ref --verify -q refs/heads/develop || git branch develop main
-   git show-ref --verify -q refs/heads/main    || git branch main develop
-   ```
+Pregunta antes de borrar en bloque si hay ambigüedad.
 
-   **Las dos se crean en local; ninguna se publica todavía** (`main`, hasta el Paso 5:
-   `reference.md` §Paso 0). Crea la **rama 1**: `git checkout -b docs/arranque develop`
-   — TODO lo que sigue va ahí.
+## Paso 6 — Cierre
 
-## Paso 1 — Sprint de definición
+Registra la instanciación como el ADR `0002` (usa `docs/decisions/0000-template.md`):
+contexto del proyecto, stack elegido, tipo, convenciones eliminadas y política de
+permisos/guardrails — así el proyecto estrena su propio registro de decisiones.
 
-Corre `/definir-producto` (la entrevista, con el banco literal de
-`docs/product/interview.md`). No avances sin la tabla Dentro/Fuera de v1. Con el tipo de
-proyecto definido, propone un stack de `docs/marco-tecnico.md` §3 y confirma desviaciones.
+Muestra un resumen del diff y la lista de placeholders que aún requieren decisión humana.
+NO hagas commit — deja que la persona revise. En "existente", recuérdale que todo quedó
+en la rama para abrir un PR. Sugiere borrar `TEMPLATE-USAGE.md` cuando termine.
 
-## Paso 2 — Entrevistar lo que falte del repo (usa AskUserQuestion)
+Ejemplo: `/instanciar` → entrevista → repo con documentación real y `docs/` podados.
 
-Preguntas de **tooling**, no de producto (esas ya las cubrió el Paso 1). Pregunta SOLO
-lo que no puedas inferir (en EXISTENTE, lee el código primero):
+NO instancies sobre el repo-fuente del template (Paso 0), NO sobrescribas el código de
+producción en proyectos existentes, NO hagas commit ni push por tu cuenta, y NO inventes
+datos: si no puedes inferir un valor y la persona no lo da, deja el placeholder y
+**márcalo como pendiente en su línea** —`[EMAIL_SEGURIDAD] <!-- pendiente: aún sin
+buzón -->`, o con `#` dentro de un bloque de código—. `check-placeholders.sh` distingue
+lo que decidiste dejar de lo que se te olvidó; sin la marca, falla.
 
-- **Identidad:** usuario/org de GitHub, email de soporte y de seguridad — infiere lo
-  que puedas de `git config`.
-- **Titular legal — pregúntalo siempre, aunque parezca obvio:** ¿a nombre de quién
-  va el producto? Escribe ese titular en el `LICENSE` y en el pie de
-  `design/preview.html` — el porqué está en `reference.md` §Paso 2.
-- **Capacidades:** ¿UI? ¿base de datos? ¿auth? ¿API? ¿i18n? ¿SEO? ¿emails? **¿IA?**
-  Cada «no» poda documentos y skills en el Paso 3. Ni la base de datos ni la IA se dan
-  por supuestas (`reference.md` §Paso 2).
-- **Stack: confírmalo pieza por pieza ANTES de escribir `stack.md`** — es la decisión
-  más cara del arranque y se ha saltado en arranques reales. Tabla, origen (marco §3 o
-  desviación con ADR) y confirmación (`reference.md` §Paso 2).
-- **Permisos:** ¿allowlist de solo-lectura en `.claude/settings.local.json`? Los tres
-  guardrails vienen **activos**; solo se tocan si la persona lo pide, y queda en el ADR.
-
-## Paso 3 — Poda por tipo (antes de rellenar, no después)
-
-**Podar va primero.** Rellenar antes obliga a inventarse contenido para documentos que
-vas a borrar: medido, 43 placeholders de trabajo tirado.
-
-**Lee AHORA `reference.md` §Paso 3 y síguelo entero**: las tablas de qué arrastra cada
-«no», las secciones que sobran dentro de archivos que se quedan («cuidado: no fallan
-ningún check»), los tags heredados, el reseteo del CHANGELOG, y los ADRs y archivos de
-la plantilla que se van.
-
-Cierra la poda con `bash .github/scripts/check-links.sh` — **podar rompe enlaces
-siempre** (`AGENTS.md` garantizado). No termines el paso hasta que salga limpio.
-
-## Paso 4 — Rellenar
-
-**La lista se pregunta, y la pasada NO recorre el repositorio entero:**
-
-```bash
-bash .github/scripts/check-placeholders.sh                       # qué falta
-bash .github/scripts/check-placeholders.sh --rutas-sustituibles  # dónde se toca
-```
-
-**El arranque real son unos 330 elementos** (placeholders + huecos en prosa); dilo desde
-el principio. **Lee AHORA `reference.md` §Paso 4 y síguelo entero.** Orden que rinde:
-
-1. **Primera pasada, por valor, SOLO con los globales y SOLO en esas rutas.** Scripts,
-   workflows, `.claude/` y las tres plantillas internas quedan fuera: sustituir ahí
-   rompe el banco de pruebas y, semanas después, `spec-guardrails`. Los **posicionales**
-   (`VERSION`, `ENTIDAD_*`, `PLAN_*`…) nunca entran: en bloque dejan documentos
-   plausibles y falsos. Si el mismo placeholder se repite en un archivo, es posicional.
-2. **Los documentos que dan contexto al resto**: definición de producto, stack,
-   arquitectura — hacen que los demás casi se rellenen solos.
-3. **Lo que no se pueda escribir hoy se marca en el momento** (`<!-- pendiente: … -->`
-   en su línea; lo global, una vez en `.pendientes`). NO inventes datos ni placeholders.
-
-Cierra con `bash .github/scripts/tests/run-tests.sh` —el daño al banco se ve ahí, no
-quince pasos después— y no termines hasta que el check salga limpio.
-
-**Y escribe `.template-origin`** en la raíz (repo, commit, fecha y `versiones=` — el
-formato exacto y cómo extraer las versiones: `reference.md` §Paso 4).
-
-## Paso 5 — Primera spec y cierre de la rama de documentación
-
-1. Registra la instanciación como ADR (contexto, stack, tipo, podas, permisos, titular
-   legal). Será el `0002` del proyecto, con enlace al repositorio origen.
-2. Crea con `/new-spec` la spec del primer cambio (normalmente `scaffold-y-prototipo`);
-   la rama que la implemente será `feat/<slug-de-la-spec>`, que es lo que el guardrail
-   exige. Si el producto es público, anota en el roadmap que faltan sus textos legales
-   (`reference.md` §Paso 2).
-3. Commitea `docs/arranque` (`/commit`) y abre el PR hacia `develop` (`/open-pr`). **El
-   código aún no existe y está bien.** Sin remoto: ahora sí `/configurar-repo` y el PR,
-   o fusiona en local con `--no-ff` y **anota que el PR queda pendiente**.
-4. **`main` se publica AQUÍ, no antes**: un `push` a `main` con el CHANGELOG sin
-   resetear dispara `release.yml` y publica la release DE LA PLANTILLA. Y comprueba
-   contra el REMOTO que no hay tags ni releases heredados — `git tag -l` da falso
-   negativo sin `fetch` (`reference.md` §Paso 5).
-5. Corta la **primera release** con `/release`, completo: `chore/corte-v0.1.0` → PR a
-   `develop` → PR `develop` → `main` (dos PRs, no uno). Sin Actions, el tag y el
-   release se crean a mano (Paso 8 de `/release`).
-
-## Paso 6 — Rama 2: scaffolding + prototipo
-
-Con la release hecha: `git checkout develop && git pull && git checkout -b
-feat/<slug-de-la-primera-spec>`. Genera el proyecto, corre **`/identidad`** (la paleta
-se decide ANTES de prototipar) y después `/prototipo`, siguiendo la spec — si hay UI,
-sugiere antes el plugin **Impeccable** (`design/README.md` → Herramientas de diseño).
-
-**Activa el CI del código en esta misma rama**: renombra `ci.yml.example` → `ci.yml`,
-rellena los `[COMANDO_*]`, borra la cabecera y verifica que pase (`reference.md` §Paso 6).
-Sin esto, el proyecto llega a la v1 con un CI que solo valida Markdown.
-
-## Cierre
-
-Resume: definición (una frase + dentro/fuera de v1), stack, ramas y su estado, spec
-activa, podas hechas y **pendientes humanos** — incluidos los placeholders marcados.
-
-NO instancies sobre el repo-fuente (Paso 0), NO te saltes el orden de ramas, NO
-implementes el Paso 6 sin la spec del Paso 5, NO dejes el proyecto sin `ci.yml` activo
-ni con el CHANGELOG/ADRs de la plantilla (el job `herencia` lo verifica), NO hagas push
-sin confirmar el remoto, y NO sobrescribas código en proyectos existentes. Si la
-persona ya hizo un paso, detéctalo y sáltalo.
+Y no dejes el CHANGELOG ni los ADRs de la plantilla: son de otro repositorio. Resetea el
+CHANGELOG conservando su `## [Unreleased]` (sin una entrada, `check-changelog.sh`
+bloquea el primer PR) y borra todo ADR salvo el `0001`. Lo verifica
+`check-inheritance.sh`.

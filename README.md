@@ -19,7 +19,7 @@ Descripción breve y concisa del proyecto (1-2 líneas).
 
 Qué problema resuelve, para quién y qué cambia para esa persona. El alcance de la
 versión actual está en
-[`docs/product/product-definition.md`](docs/product/product-definition.md).
+[`docs/product/roadmap.md`](docs/product/roadmap.md).
 
 ## Requisitos previos
 
@@ -57,9 +57,9 @@ salen del gestor de credenciales, no del repositorio — ver
 
 ## Stack
 
-**[ELEGIDA]**. Lo elegido en este producto y sus desviaciones están en
-[`docs/architecture/stack.md`](docs/architecture/stack.md); el porqué de cada default,
-en [`docs/marco-tecnico.md`](docs/marco-tecnico.md).
+**[ELEGIDA]**. Lo elegido en este producto está en
+[`docs/architecture/stack.md`](docs/architecture/stack.md); el porqué de cada decisión,
+en [`docs/decisions/`](docs/decisions/README.md).
 
 ## Deployment
 
@@ -76,8 +76,8 @@ El mapa completo —qué documento responde a cada pregunta— está en
 **[`AGENTS.md`](AGENTS.md)**, que es también el contexto canónico para los agentes de
 IA ([`CLAUDE.md`](CLAUDE.md) lo importa). Los atajos más usados:
 
-- [`docs/marco-tecnico.md`](docs/marco-tecnico.md) — con qué se construye y cuándo desviarse
-- [`docs/product/product-definition.md`](docs/product/product-definition.md) — qué es la v1
+- [`docs/architecture/stack.md`](docs/architecture/stack.md) — con qué se construye
+- [`docs/product/roadmap.md`](docs/product/roadmap.md) — qué está hecho y qué viene
 - [`docs/conventions/`](docs/conventions/README.md) — cómo se trabaja aquí
 - [`docs/decisions/`](docs/decisions/README.md) — por qué se decidió cada cosa
 

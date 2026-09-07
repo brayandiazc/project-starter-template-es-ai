@@ -113,43 +113,39 @@ bash .github/scripts/check-placeholders.sh --rutas-sustituibles \
 
 ### Catálogo de placeholders
 
-| Placeholder                                                                                       | Significado                                                   |
-| ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| `[NOMBRE_DEL_PROYECTO]`                                                                           | Nombre del producto, tal como se lee                          |
-| `[SLUG_REPOSITORIO]`                                                                              | Nombre del repositorio en GitHub (`mi-proyecto`)              |
-| `[AUTOR]`                                                                                         | Nombre del autor o mantenedor principal                       |
-| `[USUARIO_GITHUB]`                                                                                | Usuario u organización de GitHub                              |
-| `[URL_REPOSITORIO]`                                                                               | URL del repositorio                                           |
-| `[AÑO]`                                                                                           | Año del copyright en la licencia                              |
-| `[VERSION]`                                                                                       | Versión (de una dependencia o del proyecto)                   |
-| `[FECHA]`                                                                                         | Fecha (formato `YYYY-MM-DD`)                                  |
-| `[EMAIL_SOPORTE]`                                                                                 | Correo de contacto/soporte                                    |
-| `[EMAIL_SEGURIDAD]`                                                                               | Correo para reportar vulnerabilidades                         |
-| `[RUNTIME]`                                                                                       | Lenguaje/runtime (Node.js, Python, Ruby…)                     |
-| `[GESTOR_DE_PAQUETES]`                                                                            | npm, pnpm, bundler, pip…                                      |
-| `[BASE_DE_DATOS]`                                                                                 | PostgreSQL, MySQL, MongoDB…                                   |
-| `[PUERTO]`                                                                                        | Puerto local de desarrollo                                    |
-| `[COMANDO_*]`                                                                                     | Comandos del proyecto (instalar, test, build, deploy…)        |
-| `[URL_*]` (`[URL_DEV]`, `[URL_BASE_API]`…)                                                        | URLs por ambiente y recursos web                              |
-| `[SERVICIO/API]`, `[LINK_*]`, `[OTROS_*]`                                                         | Recursos específicos de tu proyecto                           |
-| `[HERRAMIENTA]`, `[HERRAMIENTA_*]`, `[OTRA_HERRAMIENTA]`                                          | Herramientas del stack (build, test, e2e, migraciones…)       |
-| `[FRAMEWORK_*]`, `[ORM]`, `[LINTER]`, `[FORMATEADOR]`                                             | Piezas del stack por rol                                      |
-| `[CACHE]`, `[COLA]`, `[CONTENEDORES]`, `[CI_CD]`, `[MONITOREO]`, `[TTL]`                          | Infraestructura y operaciones                                 |
-| `[PROVEEDOR_*]` (`[PROVEEDOR_HOSTING]`, `[PROVEEDOR_PAGOS]`…), `[ESTRATEGIA_BACKUP]`              | Servicios transversales del marco técnico                     |
-| `[COSTO_*]` (`[COSTO_MES]`, `[COSTO_TOTAL]`)                                                      | Cifras del marco de infraestructura                           |
-| `[STACK_*]` (`[STACK_DEFAULT]`, `[STACK_ALTERNO]`), `[REGLA_DURA]`, `[CUANDO_ENTRA]`              | Stacks y reglas duras del marco técnico                       |
-| `[URL]`                                                                                           | Una URL de fuente, en las tablas de discovery                 |
-| `[SERVIDOR]`, `[ID_SNAPSHOT]`                                                                     | Nombre del host y de un snapshot, en los comandos de respaldo |
-| `[RUTA_*]`                                                                                        | Rutas de carpetas/archivos del proyecto                       |
-| `[LAYOUT_*]`, `[LOCALE_*]`, `[AA/AAA]`                                                            | UI, i18n y nivel de accesibilidad objetivo                    |
-| `[ENTIDAD_*]`, `[COMPONENTE_*]`, `[SERVICIO_*]`, `[ROL_*]`, `[ACTOR_*]`                           | Modelo de dominio y arquitectura                              |
-| `[SEGMENTO_*]`, `[PLAN_*]`, `[PRECIO]`, `[PORCENTAJE]`                                            | Modelo de negocio                                             |
-| `[ELEGIDA]`, `[DESCARTADA]`, `[ALTERNATIVA]`                                                      | Comparativas en decisiones (stack, diseño)                    |
-| `[HERRAMIENTA_IA]`, `[EMAIL_HERRAMIENTA_IA]`                                                      | Herramienta de IA y su email (trailer de coautoría)           |
-| `[TIPO]`, `[OTRO]`, `[EJEMPLO]`, `[COMANDO]`, `[NOMBRES]`, `[PROVEEDOR]`, `[RECURSO]`, `[RIESGO]` | Descriptivos locales de cada documento                        |
-| `[RAZON]`, `[NOTA]`, `[HUECO]`, `[TRAMPA]`, `[CONSECUENCIA]`, `[QUE_FALTA]`, `[CASO_DE_USO]`      | Ídem: la celda que explica el porqué de una fila              |
-| `[PARA_QUE]`, `[COMO]`, `[CREDENCIAL]`, `[RESPONSABLE]`                                           | Columnas de la tabla de operación de servicios                |
-| `[MODELO]`, `[UNIDAD]`, `[RECORRIDO]`, `[TECNOLOGIA]`                                             | Modelos de IA, su unidad de cobro y tecnologías comparadas    |
+| Placeholder                                                                                       | Significado                                                    |
+| ------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| `[NOMBRE_DEL_PROYECTO]`                                                                           | Nombre del producto, tal como se lee                           |
+| `[SLUG_REPOSITORIO]`                                                                              | Nombre del repositorio en GitHub (`mi-proyecto`)               |
+| `[AUTOR]`                                                                                         | Nombre del autor o mantenedor principal                        |
+| `[USUARIO_GITHUB]`                                                                                | Usuario u organización de GitHub                               |
+| `[URL_REPOSITORIO]`                                                                               | URL del repositorio                                            |
+| `[AÑO]`                                                                                           | Año del copyright en la licencia                               |
+| `[VERSION]`                                                                                       | Versión (de una dependencia o del proyecto)                    |
+| `[FECHA]`                                                                                         | Fecha (formato `YYYY-MM-DD`)                                   |
+| `[EMAIL_SOPORTE]`                                                                                 | Correo de contacto/soporte                                     |
+| `[EMAIL_SEGURIDAD]`                                                                               | Correo para reportar vulnerabilidades                          |
+| `[RUNTIME]`                                                                                       | Lenguaje/runtime (Node.js, Python, Ruby…)                      |
+| `[GESTOR_DE_PAQUETES]`                                                                            | npm, pnpm, bundler, pip…                                       |
+| `[BASE_DE_DATOS]`                                                                                 | PostgreSQL, MySQL, MongoDB…                                    |
+| `[PUERTO]`                                                                                        | Puerto local de desarrollo                                     |
+| `[COMANDO_*]`                                                                                     | Comandos del proyecto (instalar, test, build, deploy…)         |
+| `[URL_*]` (`[URL_DEV]`, `[URL_BASE_API]`…)                                                        | URLs por ambiente y recursos web                               |
+| `[SERVICIO/API]`, `[LINK_*]`, `[OTROS_*]`                                                         | Recursos específicos de tu proyecto                            |
+| `[HERRAMIENTA]`, `[HERRAMIENTA_*]`, `[OTRA_HERRAMIENTA]`                                          | Herramientas del stack (build, test, e2e, migraciones…)        |
+| `[FRAMEWORK_*]`, `[ORM]`, `[LINTER]`, `[FORMATEADOR]`                                             | Piezas del stack por rol                                       |
+| `[CACHE]`, `[COLA]`, `[CONTENEDORES]`, `[CI_CD]`, `[MONITOREO]`, `[TTL]`                          | Infraestructura y operaciones                                  |
+| `[URL]`                                                                                           | Una URL de fuente, en las tablas de discovery                  |
+| `[SERVIDOR]`, `[ID_SNAPSHOT]`                                                                     | Nombre del host y de un snapshot, en los comandos de respaldo  |
+| `[RUTA_*]`                                                                                        | Rutas de carpetas/archivos del proyecto                        |
+| `[LAYOUT_*]`, `[LOCALE_*]`, `[AA/AAA]`                                                            | UI, i18n y nivel de accesibilidad objetivo                     |
+| `[ENTIDAD_*]`, `[COMPONENTE_*]`, `[SERVICIO_*]`, `[ROL_*]`, `[ACTOR_*]`                           | Modelo de dominio y arquitectura                               |
+| `[SEGMENTO_*]`, `[PLAN_*]`, `[PRECIO]`, `[PORCENTAJE]`                                            | Modelo de negocio                                              |
+| `[ELEGIDA]`, `[DESCARTADA]`, `[ALTERNATIVA]`                                                      | Comparativas en decisiones (stack, diseño)                     |
+| `[HERRAMIENTA_IA]`, `[EMAIL_HERRAMIENTA_IA]`                                                      | Herramienta de IA y su email (trailer de coautoría)            |
+| `[TIPO]`, `[OTRO]`, `[EJEMPLO]`, `[COMANDO]`, `[NOMBRES]`, `[PROVEEDOR]`, `[RECURSO]`, `[RIESGO]` | Descriptivos locales de cada documento                         |
+| `[RAZON]`, `[NOTA]`, `[PARA_QUE]`                                                                 | Ídem: la celda que explica el porqué o el para qué de una fila |
+| `[COMANDO_SNAPSHOT_*]`                                                                            | Comandos de respaldo del proveedor que uses                    |
 
 > Mantén este catálogo actualizado: cualquier `[PLACEHOLDER]` nuevo que introduzcas debería
 > aparecer aquí — el CI lo verifica con `.github/scripts/check-placeholders.sh`.
@@ -200,16 +196,15 @@ la sintaxis, para el camino manual:
 ## 4. Orden recomendado de llenado
 
 1. `README.md` — la portada del proyecto.
-2. `docs/marco-tecnico.md` — elige el stack (§3) para el tipo de proyecto.
-3. `docs/architecture/stack.md` — registra lo elegido y las desviaciones.
-4. `docs/architecture/architecture.md` — vista de alto nivel.
-5. `docs/architecture/database.md` — modelo de datos.
-6. `docs/architecture/auth.md` — autenticación y autorización.
-7. `docs/architecture/api.md` — contrato de API.
-8. `docs/architecture/pantallas.md` — mapa de pantallas y recorrido crítico.
-9. `docs/product/product-definition.md` — visión, alcance de la v1, fuera de alcance y negocio.
-10. `docs/product/roadmap.md` — roadmap.
-11. `docs/decisions/` — crea un ADR cada vez que tomes una decisión relevante.
+2. `docs/architecture/stack.md` — registra el stack que elegiste y de dónde sale.
+3. `docs/architecture/architecture.md` — vista de alto nivel.
+4. `docs/architecture/database.md` — modelo de datos.
+5. `docs/architecture/auth.md` — autenticación y autorización.
+6. `docs/architecture/api.md` — contrato de API.
+7. `docs/architecture/pantallas.md` — mapa de pantallas y recorrido crítico.
+8. `docs/product/business-model.md` — por qué existe el producto y cómo se paga.
+9. `docs/product/roadmap.md` — roadmap.
+10. `docs/decisions/` — crea un ADR cada vez que tomes una decisión relevante.
 
 ### Qué arranca vacío (historial de la plantilla)
 

@@ -3,7 +3,7 @@
 > Vista de alto nivel de cómo está construido el sistema y cómo se reparten las
 > responsabilidades. Para el stack real (versiones, librerías) ver
 > [`stack.md`](stack.md). Para el negocio ver
-> [`../product/product-definition.md`](../product/product-definition.md) › Negocio.
+> [`../product/business-model.md`](../product/business-model.md).
 >
 > **Última actualización**: [FECHA]
 

@@ -42,12 +42,12 @@ un preprocesador, CSS a pelo, un sistema propio de la empresa— porque lo que m
 los tokens de `tokens.css` y no las utilidades de nadie. Lo que sigue son las
 **preguntas** que hay que contestar y el criterio para contestarlas.
 
-| Pieza          | Elección          | Criterio para elegir                                                               |
-| -------------- | ----------------- | ---------------------------------------------------------------------------------- |
-| CSS            | [HERRAMIENTA]     | Que pueda leer tus tokens como variables, sin duplicar los valores                 |
-| Componentes    | [HERRAMIENTA]     | Que no traiga estética propia: el aspecto es del producto (ver abajo)              |
-| Primitivas     | HTML nativo       | `<dialog>`, `<details>`, `popover`: foco, teclado y Escape ya resueltos            |
-| Interactividad | [FRAMEWORK_FRONT] | Lo que ya use tu stack; ver [`../docs/marco-tecnico.md`](../docs/marco-tecnico.md) |
+| Pieza          | Elección          | Criterio para elegir                                                                                    |
+| -------------- | ----------------- | ------------------------------------------------------------------------------------------------------- |
+| CSS            | [HERRAMIENTA]     | Que pueda leer tus tokens como variables, sin duplicar los valores                                      |
+| Componentes    | [HERRAMIENTA]     | Que no traiga estética propia: el aspecto es del producto (ver abajo)                                   |
+| Primitivas     | HTML nativo       | `<dialog>`, `<details>`, `popover`: foco, teclado y Escape ya resueltos                                 |
+| Interactividad | [FRAMEWORK_FRONT] | Lo que ya use tu stack; se registra en [`../docs/architecture/stack.md`](../docs/architecture/stack.md) |
 
 **Regla de oro, y esta no se rellena**: tokens semánticos (`primary`, `base-100`,
 `base-content`), **nunca** colores crudos —ni un hex inline, ni una utilidad de paleta

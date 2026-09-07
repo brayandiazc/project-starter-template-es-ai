@@ -58,7 +58,7 @@ flowchart LR
 ## Recorrido crítico
 
 El camino que la v1 debe hacer impecable, en orden
-([`../product/product-definition.md`](../product/product-definition.md)):
+(el recorrido que hace que el producto valga la pena):
 
 [vista → vista → vista]
 

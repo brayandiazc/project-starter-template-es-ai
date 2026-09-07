@@ -18,14 +18,14 @@ Crea una nueva especificación de cambio cuyo nombre está en `$ARGUMENTS`.
    - Deja problem, goals, non-goals y approach como indicaciones para la persona autora.
 6. **Rellena «Evidencia»** antes que el objetivo: quién pagaría y qué lo respalda, si ya
    existe, y qué experimento se hizo. Mira primero
-   [`docs/product/discovery.md`](../../../docs/product/discovery.md) — puede que la
+   [`docs/product/roadmap.md`](../../../docs/product/roadmap.md) — puede que la
    respuesta ya esté. En una `fix/*` o de tooling, escribe «No aplica: corrección»: la
    sección existe para decidir qué construir, no para dar teatro a lo que ya está roto.
 7. **Ata la spec al roadmap.** Lee `docs/product/roadmap.md` y rellena el campo
    _Ítem de roadmap_ de `proposal.md` con la versión y el ítem literal que esta spec
    completa. Si hay varios candidatos, pregunta con AskUserQuestion en vez de elegir
    por tu cuenta. Si no existe ningún ítem que encaje, dilo: o se añade al roadmap
-   ahora, o el cambio debería pasar antes por `product-coach` (¿entra en la v1?,
+   ahora, o el cambio debería contrastarse antes contra el roadmap (¿entra en esta versión?,
    ¿qué sale a cambio?). Anota también la spec junto al ítem en el roadmap
    (`(specs/NNNN-<slug>/)`).
 8. Si `specs/README.md` mantiene un índice de especificaciones, añade una entrada para la nueva especificación.

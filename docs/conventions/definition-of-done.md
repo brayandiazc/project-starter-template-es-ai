@@ -38,7 +38,7 @@
 - [ ] **Si el cambio toca el esquema, una persona lo ha leído.** Es la única
       comprobación humana obligatoria: un modelo de datos mal pensado pasa todos los
       tests y no genera un solo error en el monitor (ver
-      [`ai-agents.md`](ai-agents.md) y [`../marco-tecnico.md`](../marco-tecnico.md) §4.5).
+      [`ai-agents.md`](ai-agents.md)).
 - [ ] No hay secretos en el código ni en los logs (ver [`secrets.md`](secrets.md)).
 
 ## Entrega

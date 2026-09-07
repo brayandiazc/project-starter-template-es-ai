@@ -30,7 +30,6 @@ CHECKS=(
 	"Design system	.github/scripts/check-design-tokens.sh"
 	"DESIGN.md sincronizado	.github/scripts/design-md.sh"
 	"Instrucciones del README	.github/scripts/check-instructions.sh"
-	"Costos dentro del trimestre	.github/scripts/check-costs.sh"
 	"Frontmatter skills/agentes	.github/scripts/check-skills.sh"
 	"Suite de la plantilla	.github/scripts/tests/run-tests.sh"
 	"Pruebas del proyecto	.github/scripts/check-project-tests.sh"

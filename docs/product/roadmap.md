@@ -43,14 +43,13 @@ contrato queden atados:
 
 ## Fuera de alcance
 
-La lista canónica es la tabla «Fuera de v1» de
-[`product-definition.md`](product-definition.md) — única copia; aquí solo se anota lo
-que quedó fuera **de una versión concreta** al recortarla, con enlace a esa tabla.
+Lo que quedó fuera **de una versión concreta** al recortarla, y —esto es lo que hace
+útil la sección— **qué lo reabriría**. Sin esa condición de reapertura, un ítem fuera de
+alcance se re-discute cada trimestre desde cero.
 
-**El porqué no vive aquí.** Lo que se descartó con evidencia —y sobre todo **qué lo
-reabriría**— va a [`discovery.md`](discovery.md) → «Lo que decidimos NO construir». Sin
-esa condición de reapertura, un ítem fuera de alcance se re-discute cada trimestre desde
-cero.
+| Qué                | Por qué quedó fuera | Qué lo reabriría       |
+| ------------------ | ------------------- | ---------------------- |
+| [Ítem fuera de v1] | [RAZON]             | [Condición observable] |
 
 ## Cómo se actualiza este documento
 
@@ -58,8 +57,8 @@ Este archivo **no se revisa solo al cerrar una versión**: se mueve con cada spe
 
 - **Al abrir una spec**: su `proposal.md` declara el campo _Ítem de roadmap_ —
   la versión y el ítem que viene a completar. Si el ítem no existe, se crea aquí
-  primero (y si no encaja en ninguna versión, pasa antes por
-  [`product-definition.md`](product-definition.md): ¿entra en la v1?, ¿qué sale a cambio?).
+  primero — y si no encaja en ninguna versión, la pregunta es si entra en esta o qué
+  sale a cambio, no si se cuela sin decidirlo.
 - **Al cerrar la spec**: el mismo PR que implementa el cambio marca el ítem como
   hecho aquí y actualiza el `CHANGELOG.md`. Los tres viajan juntos — ver
   [`../conventions/workflow.md`](../conventions/workflow.md).

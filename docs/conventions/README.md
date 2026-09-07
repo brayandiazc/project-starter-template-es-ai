@@ -41,7 +41,7 @@ No se incluyen por defecto; créalas con `_template.md` si tu proyecto las neces
 - **Escritorio**: empaquetado e instaladores por SO, code signing y notarización,
   auto-update, telemetría / reporte de crashes.
 
-> **Lo que no va aquí**: el stack concreto (lo fija [`../marco-tecnico.md`](../marco-tecnico.md)
-> y lo registra [`../architecture/stack.md`](../architecture/stack.md)) y el sistema de
+> **Lo que no va aquí**: el stack concreto (lo registra
+> [`../architecture/stack.md`](../architecture/stack.md)) y el sistema de
 > diseño (vive en [`design/`](../../design/README.md), con los tokens al lado de su guía).
 > Una convención que repite un dato de esos se desincroniza sin que nadie lo note.

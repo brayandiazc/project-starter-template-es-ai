@@ -15,7 +15,7 @@
 
 - **¿Quién pagaría por esto, y qué lo respalda?**: [La señal más fuerte que tengas, con
   su fuente — o "No aplica: corrección" / "No aplica: tooling". Lo acumulable vive en
-  `../../docs/product/discovery.md`.]
+  `../../docs/product/business-model.md`.]
 - **¿Ya existe?**: [Quién lo resuelve hoy y por cuánto, o "No encontré" — que no es lo
   mismo que "no existe".]
 - **Experimento previo**: [Qué se hizo antes de construir y qué dijo, o por qué no hacía

@@ -20,7 +20,6 @@
 #   - design-md:    DESIGN.md está sincronizado con design/tokens.css.
 #   - instrucciones: el README no manda ejecutar pasos que el proyecto no tiene
 #                   (p. ej. `cp .env.example .env` sin una sola variable).
-#   - costos:       los precios del marco no pasaron del trimestre.
 #   - skills:       frontmatter y longitud válidos en skills y subagentes.
 #   - scripts:      la suite de pruebas de los scripts y hooks del repo.
 #   - proyecto:     la suite del PROYECTO (salvo que ci.yml ya la corra).
@@ -83,10 +82,6 @@ jobs:
       - name: Instrucciones del README
         if: ${{ !cancelled() }}
         run: bash .github/scripts/check-instructions.sh
-
-      - name: Costos dentro del trimestre
-        if: ${{ !cancelled() }}
-        run: bash .github/scripts/check-costs.sh
 
       - name: Frontmatter de skills y agentes
         if: ${{ !cancelled() }}
