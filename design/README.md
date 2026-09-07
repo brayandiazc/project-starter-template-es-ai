@@ -16,7 +16,7 @@ Los tokens viven en un solo lugar:
   custom properties de CSS estándar, oscuro por `prefers-color-scheme` y por
   `[data-theme="dark"]`, y al final un bloque **adaptador** que las expone al framework
   de UI que uses (o ninguno). (Hubo un `tokens.json`
-  "espejo para JS/Expo": era una copia a mano que nadie consumía y ya había divergido —
+  "espejo para JS": era una copia a mano que nadie consumía y ya había divergido —
   si un stack llega a necesitar los valores en JSON, se **genera** desde este CSS y se
   suma al check de `design-md.sh`, no se copia.)
 - [`preview.html`](preview.html) — **ábrelo en el navegador para decidir la paleta.**
@@ -91,9 +91,10 @@ comentado dentro del propio [`tokens.css`](tokens.css).
   `/i18n-parity` verifica la paridad.
 - Texto secundario: `base-content` con opacidad (`text-base-content/70`), no un gris nuevo.
 - Contraste mínimo WCAG AA (4.5:1 texto normal, 3:1 texto grande) — en ambos temas.
-- **Derivación de marca**: los colores de marca (teal `#0C93BC`, naranja `#FF5722`)
-  son fijos; los tokens `primary`/`accent` los ajustan por luminancia en cada tema
-  solo para mantener AA (en oscuro: teal claro `#3FB4D8`, naranja claro `#FF7A4D`).
+- **Derivación de marca**: el color de marca del producto es fijo; los tokens
+  `primary`/`accent` lo ajustan **por luminancia** en cada tema, solo lo necesario para
+  mantener AA. Si el color de marca no llega al contraste, se ajusta el token y la marca
+  vive en el logo, no en los botones.
 
 ## Tipografía
 
@@ -164,20 +165,20 @@ duplican bundle y pelean por el `requestAnimationFrame`).
 
 ### Motion en móvil
 
-En Expo (la única vía a móvil, y solo cuando la PWA no basta): **Reanimated 3+** +
-**Gesture Handler**, que corren en el hilo de UI, y **Moti** encima para menos
-boilerplate. Lottie y Rive tienen runtime oficial.
+Si el producto llega a móvil nativo, la regla no cambia: usa el motor que corre en el
+**hilo de UI** del framework que elijas, y una capa encima solo si reduce boilerplate de
+verdad. Lottie y Rive tienen runtime oficial en los ecosistemas móviles principales.
 
 ## Librerías JS de apoyo (elige de aquí, no improvises)
 
-| Necesidad             | Default                              | Nota                                          |
-| --------------------- | ------------------------------------ | --------------------------------------------- |
-| Gráficas              | Chart.js                             | Apache ECharts si el dashboard es denso       |
-| Tablas de datos       | [HERRAMIENTA]                        | Ordenar/filtrar/paginar                       |
-| Fechas                | `Intl` nativo; day.js si se complica | Nada de moment.js                             |
-| Formularios (React)   | React Hook Form + Zod                | Ya en los presets SPA/PWA                     |
-| Animación JS          | Motion                               | Solo cuando CSS no alcanza                    |
-| Manipulación de datos | JS nativo (map/filter/groupBy)       | Lodash solo funciones puntuales (`lodash-es`) |
+| Necesidad             | Default                              | Nota                                              |
+| --------------------- | ------------------------------------ | ------------------------------------------------- |
+| Gráficas              | Chart.js                             | Apache ECharts si el dashboard es denso           |
+| Tablas de datos       | [HERRAMIENTA]                        | Ordenar/filtrar/paginar                           |
+| Fechas                | `Intl` nativo; day.js si se complica | Nada de moment.js                                 |
+| Formularios (React)   | React Hook Form + Zod                | Validación declarativa, el esquema es el contrato |
+| Animación JS          | Motion                               | Solo cuando CSS no alcanza                        |
+| Manipulación de datos | JS nativo (map/filter/groupBy)       | Lodash solo funciones puntuales (`lodash-es`)     |
 
 ## Imágenes, ilustraciones y vectores (fuentes aprobadas)
 
@@ -197,7 +198,7 @@ licencia que permite uso comercial (verifica siempre la licencia del asset concr
 Reglas de uso:
 
 - **Optimiza antes de commitear**: SVG por [SVGO](https://svgo.dev); fotos a WebP/AVIF
-  con el ancho real de render. Assets pesados van a R2, no al repo.
+  con el ancho real de render. Los assets pesados van al almacenamiento de archivos, no al repo.
 - **`alt` siempre** (descriptivo, o `alt=""` si es decorativa) — es parte del baseline
   de accesibilidad.
 - Ilustraciones de un solo estilo por producto (igual que los iconos: no mezclar).
