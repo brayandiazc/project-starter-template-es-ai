@@ -7,13 +7,13 @@
 
 ## Qué manda sobre qué
 
-| Pregunta                                      | Dónde                                                          |
-| --------------------------------------------- | -------------------------------------------------------------- |
-| Paleta, tipografía, iconos, motion, estados   | [`design/README.md`](../../design/README.md)                   |
-| Los valores concretos de los tokens           | [`design/tokens.css`](../../design/tokens.css)                 |
-| Qué pantallas tiene el producto               | [`../architecture/pantallas.md`](../architecture/pantallas.md) |
-| Cómo se organizan esas pantallas en el código | Este documento                                                 |
-| Los assets de marca de este producto          | Este documento                                                 |
+| Pregunta                                      | Dónde                                                      |
+| --------------------------------------------- | ---------------------------------------------------------- |
+| Paleta, tipografía, iconos, motion, estados   | [`design/README.md`](../../design/README.md)               |
+| Los valores concretos de los tokens           | [`design/tokens.css`](../../design/tokens.css)             |
+| Qué pantallas tiene el producto               | [`../architecture/screens.md`](../architecture/screens.md) |
+| Cómo se organizan esas pantallas en el código | Este documento                                             |
+| Los assets de marca de este producto          | Este documento                                             |
 
 Desviarse del design system es legítimo y cuesta un ADR — igual que desviarse del
 marco técnico. Lo que no vale es desviarse sin querer.

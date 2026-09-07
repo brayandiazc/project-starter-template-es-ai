@@ -30,11 +30,11 @@ Los pasos 1–4 se repiten en cada cambio no trivial; el 5 marca los cortes de v
 Si el producto tiene vistas, tres pasos se pagan solos **antes** de escribir lógica.
 No es un método de producto: es el orden en que salen más baratos los errores de UI.
 
-| Paso          | Qué se hace                                                   | Artefacto que queda                                            |
-| ------------- | ------------------------------------------------------------- | -------------------------------------------------------------- |
-| 1. Mapear     | Inventario de vistas (catálogo estándar abajo + las propias)  | [`../architecture/pantallas.md`](../architecture/pantallas.md) |
-| 2. Vestir     | Identidad visual del producto — skill `/identidad`            | Paleta y tipografía en `design/tokens.css`                     |
-| 3. Prototipar | Vistas estáticas navegables — agente `designer`, `/prototipo` | Prototipo en el repo, clicable                                 |
+| Paso          | Qué se hace                                                   | Artefacto que queda                                        |
+| ------------- | ------------------------------------------------------------- | ---------------------------------------------------------- |
+| 1. Mapear     | Inventario de vistas (catálogo estándar abajo + las propias)  | [`../architecture/screens.md`](../architecture/screens.md) |
+| 2. Vestir     | Identidad visual del producto — skill `/identidad`            | Paleta y tipografía en `design/tokens.css`                 |
+| 3. Prototipar | Vistas estáticas navegables — agente `designer`, `/prototipo` | Prototipo en el repo, clicable                             |
 
 **Estático antes que funcional**: las vistas se construyen primero sin lógica —validan
 el flujo y el diseño baratísimo— y después se les conecta el backend. El prototipo no se
@@ -129,7 +129,7 @@ Dos reglas de repositorio acompañan el flujo:
 
 | Fase        | Agente / skill                                            | Qué garantiza                                      |
 | ----------- | --------------------------------------------------------- | -------------------------------------------------- |
-| Mapear      | `pantallas.md` (a mano)                                   | Inventario de vistas antes de construir ninguna    |
+| Mapear      | `screens.md` (a mano)                                     | Inventario de vistas antes de construir ninguna    |
 | Vestir      | `/identidad`                                              | Paleta y tipografía del producto, decididas viendo |
 | Prototipar  | `designer`, `/prototipo`                                  | Vistas fieles al design system, clicables          |
 | Especificar | `architect`, `/new-spec`                                  | Plan fundamentado antes de tocar código            |

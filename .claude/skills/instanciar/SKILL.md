@@ -98,7 +98,7 @@ Borra los docs/convenciones que no apliquen:
 
 - Móvil / Escritorio → borra `docs/conventions/seo.md`; reenfoca `ui`, `api`, `deploy`.
 - API / Librería → borra los docs de UI (`conventions/seo.md`, `conventions/ui.md`,
-  `architecture/pantallas.md`) y la carpeta `design/` con `DESIGN.md`.
+  `architecture/screens.md`) y la carpeta `design/` con `DESIGN.md`.
 - Cada capacidad respondida "no" en el Lote D → borra su convención (p. ej. sin i18n →
   `docs/conventions/i18n.md`) **y su skill asociada**: sin i18n → `i18n-parity`; sin
   base de datos → `migration-guard`; sin SEO/web pública → `seo-audit`; sin UI (API o

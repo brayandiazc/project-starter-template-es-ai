@@ -202,7 +202,7 @@ la sintaxis, para el camino manual:
 4. `docs/architecture/database.md` — modelo de datos.
 5. `docs/architecture/auth.md` — autenticación y autorización.
 6. `docs/architecture/api.md` — contrato de API.
-7. `docs/architecture/pantallas.md` — mapa de pantallas y recorrido crítico.
+7. `docs/architecture/screens.md` — mapa de pantallas y recorrido crítico.
 8. `docs/product/business-model.md` — por qué existe el producto y cómo se paga.
 9. `docs/product/roadmap.md` — roadmap.
 10. `docs/decisions/` — crea un ADR cada vez que tomes una decisión relevante.
